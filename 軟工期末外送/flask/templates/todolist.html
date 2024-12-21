@@ -1,0 +1,36 @@
+<html><head>
+<meta charset="utf-8">
+<title>List</title></head>
+<body>
+<p>清單</p>
+<hr />
+<table width="200" border="1">
+  <tr>
+    <td>id</td>
+    <td>Job Name</td>
+	<td>Job Content</td>
+  <td>狀態</td>
+  <td>到期日</td>
+  </tr>
+    {% for rec in data %}
+    {% if rec.status ==0 %}
+	<tr>
+		<td>{{rec.id}}</td>
+		<td>{{rec.jobName}}</td>
+		<td>{{rec.jobContent}}</td>
+    <td>{{rec.status}}</td>
+    <td>{{rec.dueDate}}<a href="/setFinish?id={{rec.id}}">完工</a></td>
+	</tr>
+  {% else %}
+  <tr>
+		<td>{{rec.id}}</td>
+		<td>{{rec.jobName}}</td>
+		<td>{{rec.jobContent}}</td>
+    <td>已完成</td>
+    <td></td>
+       {%endif%}
+    {% endfor %}
+</table>
+<a href="/">go Home</a>
+</body></html>
+
