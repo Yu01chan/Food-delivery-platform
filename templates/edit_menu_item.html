@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>編輯餐點</title>
+    <style>
+        /* 全局樣式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f9f9f9;
+            color: #333;
+            padding: 40px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #6f4f1f;
+            margin-bottom: 30px;
+            font-size: 2rem;
+            font-weight: bold;
+        }
+
+        /* 表單容器 */
+        .form-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+        }
+
+        /* 表單欄位樣式 */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            font-size: 1rem;
+            color: #333;
+            margin-bottom: 8px;
+            display: block;
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        textarea,
+        input[type="file"] {
+            width: 100%;
+            padding: 12px;
+            margin-top: 8px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+            background-color: #fdfdfd;
+            transition: all 0.3s ease-in-out;
+        }
+
+        input:focus,
+        textarea:focus {
+            border-color: #6f4f1f;
+            background-color: #fff;
+            outline: none;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        /* 按鈕樣式 */
+        .submit-btn {
+            background-color: #6f4f1f;
+            color: white;
+            padding: 15px 20px;
+            font-size: 1.2rem;
+            width: 100%;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .submit-btn:hover {
+            background-color: #8b5a2b;
+        }
+
+        .submit-btn:active {
+            background-color: #a85c3b;
+        }
+
+        /* 圖片預覽樣式 */
+        .image-preview {
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .image-preview img {
+            max-width: 100%;
+            max-height: 200px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .image-preview p {
+            color: #999;
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+
+        /* 錯誤訊息樣式 */
+        .error-msg {
+            color: red;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h1>編輯餐點</h1>
+        {% if menu_item %}
+        <form method="POST" action="{{ url_for('edit_menu_item_route', item_id=menu_item['id']) }}" enctype="multipart/form-data">
+            {{ form.hidden_tag() }}
+            
+            <!-- 名稱欄位 -->
+            <div class="form-group">
+                <label for="name">名稱:</label>
+                <input type="text" id="name" name="name" value="{{ menu_item['name'] }}" required>
+                {% if form.name.errors %}
+                <div class="error-msg">
+                    {{ form.name.errors[0] }}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- 描述欄位 -->
+            <div class="form-group">
+                <label for="description">描述:</label>
+                <textarea id="description" name="description" required>{{ menu_item['description'] }}</textarea>
+                {% if form.description.errors %}
+                <div class="error-msg">
+                    {{ form.description.errors[0] }}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- 價格欄位 -->
+            <div class="form-group">
+                <label for="price">價格:</label>
+                <input type="number" id="price" name="price" step="0.01" value="{{ menu_item['price'] }}" required>
+                {% if form.price.errors %}
+                <div class="error-msg">
+                    {{ form.price.errors[0] }}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- 圖片預覽 -->
+            <div class="image-preview">
+                <label for="current_image">當前圖片:</label><br>
+                {% if menu_item['image_path'] %}
+                <img src="{{ url_for('static', filename=menu_item['image_path'].replace('static/', '').replace('\\', '/')) }}" alt="當前圖片">
+                {% else %}
+                <p>尚未上傳圖片</p>
+                {% endif %}
+            </div>
+
+            <!-- 圖片上傳 -->
+            <div class="form-group">
+                <label for="image">更改圖片 (可選):</label>
+                <input type="file" name="image" id="image"><br>
+                {% if form.image.errors %}
+                <div class="error-msg">
+                    {{ form.image.errors[0] }}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- 提交按鈕 -->
+            <button type="submit" class="submit-btn">更新</button>
+        </form>
+        {% else %}
+        <p>找不到餐點資料，請返回上一頁。</p>
+        {% endif %}
+    </div>
+</body>
+</html>

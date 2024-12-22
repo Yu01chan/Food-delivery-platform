@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>訂單詳情</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="order-details-container">
+        <h1>訂單詳情</h1>
+        <p class="order-id">訂單編號: <strong>{{ order['id'] }}</strong></p>
+        <p class="order-status">狀態: <strong>{{ order['status'] }}</strong></p>
+        <h2>訂單內容</h2>
+        <ul class="order-items-list">
+            {% for item in order_items %}
+                <li class="order-item">
+                    <span>{{ item['name'] }}</span> - ${{ item['price'] }} x {{ item['quantity'] }}
+                </li>
+            {% endfor %}
+        </ul>
+        <form method="POST" action="{{ url_for('update_order_status_route', order_id=order['id']) }}" class="status-update-form">
+            <label for="status">更新狀態:</label>
+            <select id="status" name="status" required>
+                <option value="Pending" {% if order['status'] == 'Pending' %}selected{% endif %}>待處理</option>
+                <option value="In Progress" {% if order['status'] == 'In Progress' %}selected{% endif %}>進行中</option>
+                <option value="Completed" {% if order['status'] == 'Completed' %}selected{% endif %}>完成</option>
+            </select>
+            <button type="submit" class="update-btn">更新</button>
+        </form>
+    </div>
+</body>
+</html>

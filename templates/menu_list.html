@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>餐点管理</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh; /* 页面高度至少等于视口高度 */
+        }
+
+        header {
+            background-color: #8b4513;
+            color: white;
+            padding: 10px 20px;
+            position: relative; /* 确保返回按钮可以定位 */
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 24px;
+            text-align: center;
+        }
+
+        .back-btn {
+            position: absolute; /* 使用绝对定位 */
+            top: 10px;
+            left: 20px;
+            text-decoration: none;
+            color: #fff;
+            background-color: #5c4033;
+            padding: 8px 16px;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        .back-btn:hover {
+            background-color: #3c2f21;
+        }
+
+        nav {
+            margin-top: 10px;
+            text-align: center; /* 保持原本的按钮居中 */
+        }
+
+        nav a {
+            text-decoration: none;
+            color: #fff;
+            background-color: #5c4033;
+            padding: 8px 16px;
+            margin: 0 10px;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        nav a:hover {
+            background-color: #3c2f21;
+        }
+
+        main {
+            flex: 1; /* 主体内容占据剩余空间 */
+            padding: 20px;
+            padding-bottom: 80px; /* 确保底部留出足够空间 */
+        }
+
+        .menu-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .menu-item {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            text-align: center;
+            transition: transform 0.2s ease;
+        }
+
+        .menu-item:hover {
+            transform: translateY(-5px);
+        }
+
+        .menu-item h3 {
+            font-size: 22px;
+            margin: 10px 0;
+        }
+
+        .menu-item .description {
+            font-size: 16px;
+            color: #555;
+        }
+
+        .menu-item .price {
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .menu-item .edit-btn,
+        .menu-item .delete-btn {
+            display: inline-block;
+            background-color: #5c4033;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+            margin-top: 15px;
+            transition: background-color 0.3s ease;
+        }
+
+        .menu-item .edit-btn:hover,
+        .menu-item .delete-btn:hover {
+            background-color: #3c2f21;
+        }
+
+        .menu-item .delete-btn {
+            background-color: #d32f2f;
+        }
+
+        .menu-item .delete-btn:hover {
+            background-color: #b71c1c;
+        }
+
+        .menu-item-image img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+
+        .menu-item-image p {
+            color: #888;
+            font-size: 14px;
+        }
+
+        footer {
+            background-color: #8b4513;
+            color: white;
+            text-align: center;
+            padding: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a href="{{ url_for('index') }}" class="back-btn">返回</a> <!-- 返回按钮放置在左上角 -->
+        <h1>餐点管理</h1>
+        <nav>
+            <a href="{{ url_for('add_menu_item_route') }}">新增餐点</a>
+        </nav>
+    </header>
+
+    <main>
+        <section class="menu-list">
+            {% for item in menu_items %}
+            <div class="menu-item">
+                <div class="menu-item-image">
+                    {% if item.image_path %}
+                        <img src="{{ item.image_path | replace('\\', '/') }}" alt="{{ item.name }}">
+                    {% else %}
+                        <p>没有图片</p>
+                    {% endif %}
+                </div>
+                <div class="menu-item-details">
+                    <h3>{{ item.name }}</h3>
+                    <p class="description">{{ item.description }}</p>
+                    <p class="price">价格: ¥{{ item.price }}</p>
+                    <a href="{{ url_for('edit_menu_item_route', item_id=item.id) }}" class="edit-btn">编辑</a>
+                    <form action="{{ url_for('delete_menu_item_route', item_id=item.id) }}" method="POST" style="display:inline;">
+                        <button type="submit" class="delete-btn" onclick="return confirm('您确定要删除这个餐点吗？')">删除</button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 餐厅管理平台</p>
+    </footer>
+</body>
+</html>
