@@ -1,0 +1,52 @@
+<html>
+<head>
+<meta charset="utf-8">
+<title>bids</title>
+</head>
+<body>
+<h1>競拍紀錄</h1>
+<hr />
+
+{% if "no_bids" in grouped_bids %}
+    <p>尚未有人競標</p>
+{% else %}
+    {% for item_id, bids in grouped_bids.items() %}
+    <h2>拍賣品ID: {{ item_id }}</h2>
+    <table width="100%" border="1">
+      <tr>
+        <th>順序</th>
+        <th>拍賣品名稱</th>
+        <th>當前最高價</th>
+        <th>出價金額</th>
+        <th>出價者ID</th>
+        <th>出價時間</th>
+      </tr>
+
+      {% if bids %}
+        {% for rec in bids %}
+        <tr>
+          <td>{{ rec.bid_id }}</td>
+          <td>{{ rec.item_name }}</td>
+          <td>{{ rec.current_highest_price }}</td>
+          <td>{{ rec.bid_amount }}</td>
+          <td>{{ rec.bidder_id }}</td>
+          <td>{{ rec.created_at }}</td>
+        </tr>
+        {% endfor %}
+      {% else %}
+        <tr>
+          <td colspan="8">尚未有人競標</td>
+        </tr>
+      {% endif %}
+    </table>
+    {% endfor %}
+{% endif %}
+
+<a href="/auctionitems">回到商品清單</a>
+</body>
+</html>
+
+
+
+
+

@@ -1,0 +1,37 @@
+<html><head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<script language="javascript">
+
+function loadData() {
+	id = document.getElementById('todoID').value;
+	URL='d.py?id=' + id; //use GET to send id
+	//向URL發出request
+	fetch(URL,{
+		method: 'GET'
+	})
+	.then(function(res){ //fetch的callback function，傳回值是promise物件: res
+		//將res的內容轉為JSON物件，傳給下一個Callback function
+		return res.json();
+	})
+	.then(function(json){ //下一個callback function，參數data是上一個callback傳進來的物件
+		document.getElementById('jobID').value = json['jobID'];
+		document.getElementById('jobName').value = json['jobName'];
+		document.getElementById('jobUrgent').value = json['jobUrgent'];
+		document.getElementById('jobContent').value = json['jobContent'];
+	})
+}
+
+</script>
+</head>
+
+<body >
+enter todo ID:<input type="text" id="todoID" />
+<button onclick="loadData()">Load</button>
+<hr>
+<form >
+<input id="jobID" type="hidden"  /> <br>
+工作名稱: <input id="jobName" type="text"  /> <br>
+緊急程度: <input id="jobUrgent" type="text"  /> <br>
+工作說明: <textarea id='jobContent'></textarea><br>
+</form>
+</body></html>

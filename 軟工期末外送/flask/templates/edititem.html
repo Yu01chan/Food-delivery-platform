@@ -1,0 +1,41 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Edit Item</title>
+<script>
+    // 自動填入當前時間
+    function setCurrentTime() {
+        const currentTime = new Date();
+        currentTime.setHours(currentTime.getHours() - 4); // 調整時差
+        const formattedTime = currentTime.toISOString().slice(0, 19).replace('T', ' ');
+        document.getElementById("currentTime").value = formattedTime;
+    }
+    window.onload = setCurrentTime;
+</script>
+</head>
+<body>
+<p>編輯商品內容</p>
+<hr />
+<form method="post" action="/edititem">
+<input name="user_id" type="hidden" value="{{ session['loginID'] }}" />
+<input name="item_id" type="hidden" value="{{ item.id }}" />
+產品名稱: <input name="name" type="text" value="{{ item.name }}" /> <br>
+說明內容: <textarea name="due">{{ item.description }}</textarea><br>
+底價: <input name="price" type="text" value="{{ item.base_price }}" /> <br>
+上架時間: <input name="time" type="text" id="currentTime" value="{{ item.created_at }}" readonly /> <br>
+<input type="submit">
+</form>
+<a href="/myitems">回到商品清單</a>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+

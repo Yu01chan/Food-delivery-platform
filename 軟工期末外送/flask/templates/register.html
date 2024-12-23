@@ -1,0 +1,39 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Register</title>
+    <script>
+        // 自動填入當前時間
+        function setCurrentTime() {
+            const currentTime = new Date();
+            currentTime.setHours(currentTime.getHours() - 4); // 調整時差
+            const formattedTime = currentTime.toISOString().slice(0, 19).replace('T', ' ');
+            document.getElementById("currentTime").value = formattedTime;
+        }
+        window.onload = setCurrentTime;
+    </script>
+</head>
+<body>
+    <p>註冊新帳號</p>
+    <hr>
+    <!-- 註冊表單 -->
+    <form method="POST" action="/register">
+        ID: <input type="text" name="ID" required> <br>
+        Username: <input type="text" name="username" required> <br>
+        Password: <input type="password" name="PWD" required> <br>
+        註冊時間: <input name="time" type="text" id="currentTime" value="{{ created_at }}" readonly /> <br>
+        <input type="submit" value="註冊">
+    </form>
+
+    <hr>
+
+    <!-- 返回登錄頁面 -->
+    <p>已經有帳號？ <a href="/loginPage.html" style="text-decoration: none; font-weight: bold;">返回登入</a></p>
+</body>
+</html>
+
+
+
+
+

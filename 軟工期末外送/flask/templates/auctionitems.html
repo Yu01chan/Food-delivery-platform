@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>auctionitems</title>
+  <style>
+    .title {
+      font-size: 30px; /* 調整字體大小 */
+      font-weight: bold; /* 調整字體粗細 */
+      color: rgba(14, 10, 240, 0.525); /* 字體顏色 */
+    }
+  </style>
+</head>
+<body>
+  <p class="title">商品清單</p>
+  <hr />
+  <table width="700" border="10">
+    <tr>
+      <td>商品 ID</td>
+      <td>商品名稱</td>
+      <td>產品說明</td>
+      <td>底價</td>
+      <td>目前最高價</td>
+      <td>賣家 ID</td>
+      <td>上架時間</td>
+      <td>競拍紀錄</td>
+      <td>參與競標</td>
+    </tr>
+    {% for rec in data %}
+    <tr>
+      <td>{{ rec.id }}</td>
+      <td>{{ rec.name }}</td>
+      <td>{{ rec.description }}</td>
+      <td>{{ rec.base_price }}</td>
+      <td>{{ rec.current_highest_price }}</td>
+      <td>{{ rec.user_id }}</td>
+      <td>{{ rec.created_at }}</td>
+      <td>
+        <a href="/bids?item_id={{ rec.id }}" style="text-decoration: none;">查看競拍紀錄</a>
+      </td>
+      <td>
+        <a href="/biditems?item_id={{ rec.id }}" style="text-decoration: none;">競標</a>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  <a href="/myitems">我的商品</a>
+</body>
+</html>
+
+

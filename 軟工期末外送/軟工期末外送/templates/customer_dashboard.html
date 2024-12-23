@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>顧客儀表板</title>
+</head>
+<body>
+    <h1>歡迎, {{ current_user.username }} (顧客)</h1>
+    <form method="POST">
+        <label for="restaurant_id">選擇餐廳：</label>
+        <select id="restaurant_id" name="restaurant_id" required>
+            {% for restaurant in restaurants %}
+                <option value="{{ restaurant.id }}">{{ restaurant.name }}</option>
+            {% endfor %}
+        </select>
+        <h3>點餐項目：</h3>
+        <div id="order-items">
+            <div>
+                <label for="order_items_1">菜單項目 ID：</label>
+                <input type="text" id="order_items_1" name="order_items">
+                <label for="quantities_1">數量：</label>
+                <input type="number" id="quantities_1" name="quantities">
+            </div>
+        </div>
+        <button type="submit">提交訂單</button>
+    </form>
+</body>
+</html>
