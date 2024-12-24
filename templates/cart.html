@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>加入購物車详情</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            background-color: #8b4513;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+        }
+
+        main {
+            flex: 1;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .item-details {
+            background-color: white;
+            padding: 20px;
+            margin: 20px auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+        }
+
+        .item-details h3 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .item-details .price {
+            font-size: 20px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .quantity-selector {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .quantity-selector button {
+            background-color: #ccc;
+            border: none;
+            padding: 10px 20px;
+            font-size: 18px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .quantity-selector button:hover {
+            background-color: #999;
+        }
+
+        .quantity-selector span {
+            margin: 0 15px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        /* 加入购物车按钮 */
+        .add-to-cart-btn {
+            background-color: red;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+        }
+
+        .add-to-cart-btn:hover {
+            background-color: #cc0000;
+        }
+
+        /* 返回按钮 */
+        .back-btn {
+            background-color: #3c2f21;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            position: absolute;
+            top: 10px;
+            left: 10px;
+        }
+
+        .back-btn:hover {
+            background-color: #2c1d15;
+        }
+
+        /* 显示购物车数量的样式 */
+        .cart-info {
+            margin-top: 20px;
+            font-size: 18px;
+            color: #555;
+        }
+
+       /* 查看购物车按钮 */
+.view-cart-btn {
+    background-color: #40d822; /* 深橘色 */
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    border: none;
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    text-decoration: none; /* 去掉下划线 */
+}
+
+.view-cart-btn:hover {
+    background-color: #d85f00; /* 深橘色 hover 效果 */
+}
+
+    </style>
+</head>
+<body>
+    <header>
+        <h1>加入購物車详情</h1>
+    </header>
+
+    <main>
+        <!-- 返回按钮 -->
+        <a href="/food?restaurant_id={{ restaurant_id }}" class="back-btn">返回菜單</a>
+
+        <!-- 显示购物车数量 -->
+        <div id="cart-info" class="cart-info" style="display: none;"></div>
+
+        <!-- 商品详情 -->
+        <div class="item-details">
+            <h3>{{ item['name'] }}</h3>
+            <p class="price">價格: ¥{{ item['price'] }}</p>
+            
+            <!-- 数量选择器 -->
+            <div class="quantity-selector">
+                <button type="button" id="decrease">-</button>
+                <span id="quantity">1</span>
+                <button type="button" id="increase">+</button>
+            </div>
+
+            <!-- 隐藏的表单和加入购物车按钮 -->
+            <form id="add-to-cart-form">
+                <input type="hidden" id="quantity-input" name="quantity" value="1">
+                <input type="hidden" name="item_name" value="{{ item['name'] }}">
+                <input type="hidden" name="item_price" value="{{ item['price'] }}">
+                <button type="submit" class="add-to-cart-btn">加入購物車</button>
+            </form>
+        </div>
+    </main>
+
+    <!-- 查看购物车按钮 -->
+    <a href="/checkout" class="view-cart-btn">查看购物车</a>
+    
+    <script>
+        // 获取元素
+        const quantitySpan = document.getElementById('quantity');
+        const quantityInput = document.getElementById('quantity-input');
+        const decreaseButton = document.getElementById('decrease');
+        const increaseButton = document.getElementById('increase');
+        const cartInfo = document.getElementById('cart-info');
+
+        // 减少数量
+        decreaseButton.addEventListener('click', () => {
+            let quantity = parseInt(quantitySpan.textContent, 10);
+            if (quantity > 1) {
+                quantity -= 1;
+                quantitySpan.textContent = quantity;
+                quantityInput.value = quantity;
+            }
+        });
+
+        // 增加数量
+        increaseButton.addEventListener('click', () => {
+            let quantity = parseInt(quantitySpan.textContent, 10);
+            quantity += 1;
+            quantitySpan.textContent = quantity;
+            quantityInput.value = quantity;
+        });
+
+        // 表单提交事件
+        document.getElementById('add-to-cart-form').addEventListener('submit', function(event) {
+            event.preventDefault(); // 防止默认提交
+
+            const formData = new FormData(this); // 获取表单数据
+
+            // 使用 fetch 将数据发送到服务器
+            fetch('/checkout', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json()) // 解析JSON响应
+            .then(data => {
+                // 假设返回的数据包含购物车的商品数量
+                const cartQuantity = data.cartQuantity || 0;
+                if (cartQuantity > 0) {
+                    cartInfo.textContent = `您已成功加入 ${cartQuantity} 件商品。`;
+                    cartInfo.style.display = 'block'; // 显示购物车数量信息
+                } else {
+                    cartInfo.style.display = 'none'; // 不显示数量
+                }
+            })
+            .catch(error => {
+                console.error('发生错误:', error);
+            });
+        });
+    </script>
+</body>
+</html>
+
+
+
+    
+
+
+

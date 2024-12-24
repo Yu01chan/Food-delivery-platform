@@ -4,12 +4,15 @@ from werkzeug.utils import secure_filename
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, FileField, FloatField
 from wtforms.validators import DataRequired, Length
+from flask import session, redirect, url_for, request, render_template
 import os
 import uuid
 from dbUtils import (
     register_restaurant, login_restaurant, add_menu_item, get_menu_items,
     edit_menu_item, delete_menu_item, get_orders, get_order_details,
-    update_order_status, notify_rider_to_pickup, create_order
+    update_order_status, notify_rider_to_pickup, create_order, login_customer,
+    register_customer ,get_menu_items_customer_data,get_menu_restaurant_data,
+    cartmenu_items,checkout_items
 )
 
 app = Flask(__name__)
@@ -79,6 +82,33 @@ def login():
         else:
             flash("登录失败，请检查您的账户信息")
     return render_template("login.html")
+
+#客戶註冊
+@app.route("/customer", methods=["GET", "POST"])
+def customer():
+    if request.method == "POST":
+        c_id = request.form['c_id']
+        password = request.form['password']
+        if register_customer(c_id, password):  # 呼叫註冊函數
+            flash("註冊成功！請登入")
+            return redirect("/logincustomer")
+        else:
+            flash("註冊失敗，帳號可能已存在")
+    return render_template("customer.html")  # 返回註冊頁面
+
+#客戶登入
+@app.route("/logincustomer", methods=["GET", "POST"])
+def logincustomer():
+    if request.method == "POST":
+        c_id = request.form['c_id']
+        password = request.form['password']
+        if login_customer(c_id, password):  # 呼叫登入函數
+            session['c_id'] = c_id  # 保存 c_id 到 session
+            return redirect("/customermenu")  # 登入後重定向到菜單頁面
+        else:
+            flash("登入失敗，請檢查帳號或密碼")
+    return render_template("logincustomer.html")  # 返回登入頁面
+
 
 @app.route("/")
 @login_required
@@ -250,5 +280,136 @@ def simulate_order():
     menu_items = get_menu_items(session.get('user_id'))
     return render_template("simulate_order.html", menu_items=menu_items)
 
-if __name__ == "__main__":
-    app.run(debug=True)
+@app.route('/customermenu')
+def customermenu():
+    # 呼叫函數獲取菜單資料並進行分組
+    grouped_menu_items = get_menu_items_customer_data()
+
+    # 確保圖片路徑為有效的靜態資源
+    for restaurant_id, menu_items in grouped_menu_items.items():
+        for item in menu_items:
+            if item.get('image_path'):
+                item['image_path'] = item['image_path'].replace("\\", "/")
+
+    # 傳遞正確的變數名稱
+    return render_template("customermenu.html", menu_items=grouped_menu_items)
+
+@app.route("/food/<restaurant_id>")
+@login_required
+def get_menu_restaurant(restaurant_id):
+    # 获取指定餐厅的菜单项
+    menu_items = get_menu_restaurant_data(restaurant_id)
+
+    # 确保图片路径为有效的静态资源
+    for item in menu_items:
+        if item.get('image_path'):
+            # 确保图片路径相对于静态文件夹
+            item['image_path'] = item['image_path'].replace("\\", "/")
+
+    return render_template("ordermenu.html", menu_items=menu_items)
+
+# 查看购物车商品详情
+@app.route('/cart_item/<int:item_id>', methods=['GET'])
+def view_cart_item(item_id):
+    # 获取商品信息
+    item = cartmenu_items(item_id)
+    if not item:
+        flash('商品未找到')
+        return "商品未找到", 404
+
+    # 渲染商品详情页面
+    return render_template('cart.html', item=item)
+
+# 添加商品到购物车
+@app.route('/add_to_cart/<int:item_id>', methods=['POST'])
+def add_to_cart(item_id):
+    # 从数据库查询商品信息
+    menu_item = checkout_items(item_id)
+
+    if not menu_item:
+        flash('商品不存在！')
+        return redirect(url_for('view_cart_item', item_id=item_id))  # 修正为正确的视图名称
+
+    try:
+        # 获取并验证数量
+        quantity = int(request.form.get('quantity', 1))
+        item_name = menu_item['name']
+        item_price = float(menu_item['price'])  # 确保是数值类型
+
+        # 计算小计
+        total_price = quantity * item_price
+
+        # 确保购物车存在
+        if 'cart' not in session:
+            session['cart'] = []
+
+        # 将商品存储到 session
+        session['cart'].append({
+            'restaurant_id': menu_item.get('restaurant_id', 1),
+            'item_id': item_id,
+            'item_name': item_name,
+            'item_price': item_price,
+            'quantity': quantity,
+            'total_price': total_price
+        })
+
+        session.modified = True  # 确保 session 更新生效
+
+    except ValueError as e:
+        flash(f"数据处理错误: {e}")
+        return redirect(url_for('view_cart_item', item_id=item_id))
+
+    return redirect(url_for('checkout'))
+
+# 结算购物车
+@app.route('/checkout')
+def checkout():
+    cart = session.get('cart', [])
+
+    # 验证购物车是否为空
+    if not cart:
+        flash("購物車沒商品")
+        return render_template('noproduct.html')
+
+    # 使用字典来合并相同商品
+    grouped_cart = {}
+    for item in cart:
+        item_name = item['item_name']
+        if item_name in grouped_cart:
+            grouped_cart[item_name]['quantity'] += item['quantity']
+            grouped_cart[item_name]['total_price'] += item['total_price']
+        else:
+            grouped_cart[item_name] = item
+
+    # 计算总金额
+    total_amount = sum(item['total_price'] for item in grouped_cart.values())
+
+    return render_template('checkout.html', cart=grouped_cart.values(), total_amount=total_amount)
+
+@app.route('/sendorder')
+def sendorder():
+    return render_template('sendorder.html')
+
+@app.route('/comment')
+def comment():
+    return render_template('comment.html')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,6 +1,7 @@
 import mysql.connector
 from mysql.connector import Error
 from werkzeug.security import generate_password_hash, check_password_hash
+from collections import defaultdict  # 載入 defaultdict
 
 def get_db_connection():
     """建立並返回數據庫連接"""
@@ -26,19 +27,27 @@ def execute_query(query, params=None, fetchone=False, fetchall=False):
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
         cursor.execute(query, params or ())
+        result = None
+
+        # 根据需要提取单条或多条记录
         if fetchone:
-            return cursor.fetchone()
-        if fetchall:
-            return cursor.fetchall()
+            result = cursor.fetchone()
+        elif fetchall:
+            result = cursor.fetchall()
+        
+        # 提交事务
         conn.commit()
+        return result
     except Error as e:
         print(f"執行查詢時發生錯誤: {e}")
         raise
     finally:
+        # 确保游标和连接关闭
         if cursor:
             cursor.close()
         if conn:
             conn.close()
+
 
 # 餐廳用戶管理
 def register_restaurant(user_id, password):
@@ -162,3 +171,62 @@ def create_order(restaurant_id, customer_name, order_items):
     except Exception as e:
         print(f"创建订单失败: {e}")
         return False
+
+# 餐廳客戶管理
+def register_customer(c_id, password):
+    """註冊新餐廳顧客"""
+    try:
+        # 密碼加密
+        hashed_password = generate_password_hash(password)
+        query = "INSERT INTO customers (c_id, password) VALUES (%s, %s)"
+        execute_query(query, (c_id, hashed_password))  # 執行 SQL 插入操作
+        return True
+    except mysql.connector.IntegrityError as e:
+        print(f"註冊失敗: {e}")
+        return False
+      
+
+def login_customer(c_id, password):
+    """顧客登入檢查"""
+    query = "SELECT * FROM customers WHERE c_id = %s"
+    customer = execute_query(query, (c_id,), fetchone=True)
+    if customer and check_password_hash(customer['password'], password):  # 驗證密碼
+        return True
+    return False
+
+# 定義獲取菜單項目的函數
+def get_menu_items_customer_data():
+    """獲取所有餐廳的菜單項"""
+    query = "SELECT * FROM menu_items"
+    menu_items = execute_query(query, fetchall=True)  # 獲取所有菜單資料
+    
+    # 根據 restaurant_id 將菜單項目分組
+    grouped_menu_items = defaultdict(list)
+    for item in menu_items:
+        grouped_menu_items[item['restaurant_id']].append(item)
+    
+    return grouped_menu_items
+
+def get_menu_restaurant_data(restaurant_id):
+    """ 获取指定餐厅的菜单项 """
+    query = "SELECT * FROM menu_items WHERE restaurant_id = %s"
+    params = (restaurant_id,)
+    return execute_query(query, params, fetchall=True)
+
+
+# 根据商品ID获取菜单项
+def cartmenu_items(id):
+    query = "SELECT id, name, price FROM menu_items WHERE id = %s"
+    params = (id,)
+    return execute_query(query, params, fetchone=True)
+
+def checkout_items(item_id):
+    query = "SELECT restaurant_id, name, price FROM menu_items WHERE id = %s"
+    params = (item_id,)
+    return execute_query(query, params, fetchone=True)
+
+
+
+
+
+
