@@ -8,7 +8,7 @@ from flask import session, redirect, url_for, request, render_template
 import os
 import uuid
 from dbUtils import (
-    register_restaurant, login_restaurant, add_menu_item, get_menu_items,
+    register_users, login_users, add_menu_item, get_menu_items,
     edit_menu_item, delete_menu_item, get_orders, get_order_details,
     update_order_status, notify_rider_to_pickup, create_order, login_customer,
     register_customer ,get_menu_items_customer_data,get_menu_restaurant_data,
@@ -48,6 +48,7 @@ class MenuItemForm(FlaskForm):
     image = FileField("Upload Image")
     submit = SubmitField("Submit")
 
+
 # Authentication Decorator
 def login_required(f):
     @wraps(f)
@@ -58,57 +59,36 @@ def login_required(f):
         return f(*args, **kwargs)
     return wrapper
 
-# Routes
-@app.route("/register", methods=["GET", "POST"])
-def register():
+# 註冊頁面
+@app.route("/users", methods=["GET", "POST"]) 
+def users():
     if request.method == "POST":
         user_id = request.form['user_id']
         password = request.form['password']
-        if register_restaurant(user_id, password):
+        role = request.form['role']  # 獲取 role 值
+        if register_users(user_id, password, role):  # 使用 register_users 函數
             flash("注册成功！请登录")
             return redirect(url_for('login'))
         else:
             flash("注册失败，账户可能已存在")
-    return render_template("register.html")
+    return render_template("users.html")
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
         user_id = request.form['user_id']
         password = request.form['password']
-        if login_restaurant(user_id, password):
+        user = login_users(user_id, password)  # 使用 login_users 函數來獲取用戶資料
+        if user:
             session['user_id'] = user_id
-            return redirect(url_for('index'))
+            # 根據 role 值決定跳轉頁面
+            if user['role'] == 'restaurant':
+                return redirect(url_for('index'))  # 如果是餐廳用戶，跳轉到 /index
+            elif user['role'] == 'customer':
+                return redirect(url_for('customermenu'))  # 如果是顧客，跳轉到 /customermenu
         else:
             flash("登录失败，请检查您的账户信息")
     return render_template("login.html")
-
-#客戶註冊
-@app.route("/customer", methods=["GET", "POST"])
-def customer():
-    if request.method == "POST":
-        c_id = request.form['c_id']
-        password = request.form['password']
-        if register_customer(c_id, password):  # 呼叫註冊函數
-            flash("註冊成功！請登入")
-            return redirect("/logincustomer")
-        else:
-            flash("註冊失敗，帳號可能已存在")
-    return render_template("customer.html")  # 返回註冊頁面
-
-#客戶登入
-@app.route("/logincustomer", methods=["GET", "POST"])
-def logincustomer():
-    if request.method == "POST":
-        c_id = request.form['c_id']
-        password = request.form['password']
-        if login_customer(c_id, password):  # 呼叫登入函數
-            session['c_id'] = c_id  # 保存 c_id 到 session
-            return redirect("/customermenu")  # 登入後重定向到菜單頁面
-        else:
-            flash("登入失敗，請檢查帳號或密碼")
-    return render_template("logincustomer.html")  # 返回登入頁面
-
 
 @app.route("/")
 @login_required
@@ -295,7 +275,6 @@ def customermenu():
     return render_template("customermenu.html", menu_items=grouped_menu_items)
 
 @app.route("/food/<restaurant_id>")
-@login_required
 def get_menu_restaurant(restaurant_id):
     # 获取指定餐厅的菜单项
     menu_items = get_menu_restaurant_data(restaurant_id)

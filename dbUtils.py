@@ -50,24 +50,24 @@ def execute_query(query, params=None, fetchone=False, fetchall=False):
 
 
 # 餐廳用戶管理
-def register_restaurant(user_id, password):
-    """註冊新餐廳用戶"""
+def register_users(user_id, password, role): 
+    """註冊新用戶"""
     try:
         hashed_password = generate_password_hash(password)
-        query = "INSERT INTO restaurants (user_id, password) VALUES (%s, %s)"
-        execute_query(query, (user_id, hashed_password))
+        query = "INSERT INTO users (user_id, password, role) VALUES (%s, %s, %s)"
+        execute_query(query, (user_id, hashed_password, role))  # 增加 role 欄位
         return True
     except mysql.connector.IntegrityError as e:
         print(f"註冊失敗: {e}")
         return False
 
-def login_restaurant(user_id, password):
-    """驗證餐廳用戶登錄"""
-    query = "SELECT * FROM restaurants WHERE user_id = %s"
-    restaurant = execute_query(query, (user_id,), fetchone=True)
-    if restaurant and check_password_hash(restaurant['password'], password):
-        return True
-    return False
+def login_users(user_id, password): 
+    """驗證用戶登錄"""
+    query = "SELECT * FROM users WHERE user_id = %s"
+    user = execute_query(query, (user_id,), fetchone=True)
+    if user and check_password_hash(user['password'], password):
+        return user  # 返回整個 user 資料（包含 role）
+    return None
 
 # 菜單管理
 def add_menu_item(name, description, price, restaurant_id, image_path):
@@ -203,7 +203,7 @@ def get_menu_items_customer_data():
     # 根據 restaurant_id 將菜單項目分組
     grouped_menu_items = defaultdict(list)
     for item in menu_items:
-        grouped_menu_items[item['restaurant_id']].append(item)
+        grouped_menu_items[item['restaurant_id']].append(item)# 確保 restaurant_id 為字串
     
     return grouped_menu_items
 

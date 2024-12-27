@@ -16,18 +16,25 @@
             min-height: 100vh; /* 页面高度至少等于视口高度 */
         }
 
-        header {
-            background-color: #8b4513;
-            color: white;
-            padding: 10px 20px;
-            position: relative; /* 确保返回按钮可以定位 */
-        }
+        .logout-btn {
+         position: absolute;
+         top: 20px;    /* 保持在頁面頂部 */
+         right: 20px;   /* 移至右邊距 */
+         padding: 10px 20px;
+         background-color: #8b4513;  /* 底色 #8b4513 */
+         color: white;  /* 文字顏色白色 */
+         font-size: 16px;
+         border-radius: 4px;
+         text-decoration: none;  /* 移除默認的下劃線 */
+         font-weight: bold;
+         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);  /* 陰影效果 */
+         transition: background-color 0.3s ease;
+         }
 
-        header h1 {
-            margin: 0;
-            font-size: 24px;
-            text-align: center;
-        }
+    .logout-btn:hover {
+         background-color: #5c4033;  /* 滑鼠懸停時底色變暗 */
+         }      
+
 
         .back-btn {
             position: absolute; /* 使用绝对定位 */
@@ -124,7 +131,7 @@
 </head>
 <body>
     <header>
-        <a href="{{ url_for('logincustomer') }}" class="back-btn">返回</a> <!-- 返回按钮放置在左上角 -->
+        <a href="{{ url_for('logout') }}" class="logout-btn">登出</a>
         <h1>美食菜單</h1>
        
     </header>
@@ -134,7 +141,7 @@
             {% for restaurant_id, items in menu_items.items() %}
             <div class="restaurant-section">
                 <h2>餐廳名稱: {{ restaurant_id }}</h2> <!-- 顯示餐廳 ID -->
-                <a href="{{ url_for('get_menu_restaurant', restaurant_id=restaurant_id) }}" class="order-btn">点餐</a>
+                <a href="{{ url_for('get_menu_restaurant', restaurant_id=restaurant_id) }}" class="order-btn">點餐</a>
                 {% for item in items %}
                 <div class="menu-item">
                     <div class="menu-item-image">
