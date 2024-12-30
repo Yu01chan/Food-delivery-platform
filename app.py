@@ -5,14 +5,15 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, FileField, FloatField
 from wtforms.validators import DataRequired, Length
 from flask import session, redirect, url_for, request, render_template
+from flask import jsonify
 import os
 import uuid
 from dbUtils import (
     register_users, login_users, add_menu_item, get_menu_items,
     edit_menu_item, delete_menu_item, get_orders, get_order_details,
-    update_order_status, notify_rider_to_pickup, create_order, login_customer,
-    register_customer ,get_menu_items_customer_data,get_menu_restaurant_data,
-    cartmenu_items,checkout_items
+    update_order_status, notify_rider_to_pickup,
+    get_menu_items_customer_data,get_menu_restaurant_data,
+    cartmenu_items,checkout_items,execute_query,Send_order,insert_into_db
 )
 
 app = Flask(__name__)
@@ -238,29 +239,9 @@ def logout():
     session.pop('user_id', None)
     flash("已注销，欢迎再次登录！")
     return redirect(url_for('login'))
-    
-@app.route("/simulate_order", methods=["GET", "POST"])
-@login_required
-def simulate_order():
-    if request.method == "POST":
-        # 获取模拟订单数据
-        restaurant_id = session.get('user_id')
-        customer_name = request.form['customer_name']
-        order_items = request.form.getlist('order_items[]')
-        
-        # 调用数据库工具函数，假设模拟存储订单的功能为 create_order
-        if create_order(restaurant_id, customer_name, order_items):
-            flash("模拟订单创建成功！")
-            return redirect(url_for('orders'))
-        else:
-            flash("模拟订单创建失败，请重试。")
-            return redirect(url_for('simulate_order'))
-
-    # 如果是 GET 请求，获取菜单项以供选择
-    menu_items = get_menu_items(session.get('user_id'))
-    return render_template("simulate_order.html", menu_items=menu_items)
 
 @app.route('/customermenu')
+@login_required
 def customermenu():
     # 呼叫函數獲取菜單資料並進行分組
     grouped_menu_items = get_menu_items_customer_data()
@@ -275,6 +256,7 @@ def customermenu():
     return render_template("customermenu.html", menu_items=grouped_menu_items)
 
 @app.route("/food/<restaurant_id>")
+@login_required
 def get_menu_restaurant(restaurant_id):
     # 获取指定餐厅的菜单项
     menu_items = get_menu_restaurant_data(restaurant_id)
@@ -289,6 +271,7 @@ def get_menu_restaurant(restaurant_id):
 
 # 查看购物车商品详情
 @app.route('/cart_item/<int:item_id>', methods=['GET'])
+@login_required
 def view_cart_item(item_id):
     # 获取商品信息
     item = cartmenu_items(item_id)
@@ -296,80 +279,140 @@ def view_cart_item(item_id):
         flash('商品未找到')
         return "商品未找到", 404
 
+    # 查询商品所属的餐厅 ID
+    restaurant_id_query = "SELECT restaurant_id FROM menu_items WHERE id = %s"
+    restaurant_id = execute_query(restaurant_id_query, (item_id,), fetchone=True)
+    if not restaurant_id:
+        flash('无法获取餐厅信息')
+        return "无法获取餐厅信息", 404
+
     # 渲染商品详情页面
-    return render_template('cart.html', item=item)
+    return render_template('cart.html', item=item, restaurant_id=restaurant_id['restaurant_id'])
 
 # 添加商品到购物车
-@app.route('/add_to_cart/<int:item_id>', methods=['POST'])
-def add_to_cart(item_id):
-    # 从数据库查询商品信息
-    menu_item = checkout_items(item_id)
+@app.route('/add_to_cart', methods=['POST', 'GET'])
+@login_required
+def add_to_cart():
+    if request.method == 'POST':
+        item_id = int(request.form.get('item_id'))
+        menu_item = checkout_items(item_id)
 
-    if not menu_item:
-        flash('商品不存在！')
-        return redirect(url_for('view_cart_item', item_id=item_id))  # 修正为正确的视图名称
+        if not menu_item:
+            return jsonify({'success': False, 'message': '商品不存在！'}), 404
 
+        try:
+            # 获取并验证数量
+            quantity = int(request.form.get('quantity', 1))
+            item_name = menu_item['name']
+            item_price = float(menu_item['price'])  # 确保是数值类型
+            restaurant_id = menu_item.get('restaurant_id', 1)
+
+            # 确保购物车存在
+            if 'cart' not in session:
+                session['cart'] = []
+
+            # 检查是否有其他餐厅的商品
+            if session['cart'] and session['cart'][0]['restaurant_id'] != restaurant_id:
+                return jsonify({'success': False, 'message': '购物车中已有其他餐厅的商品，请清空购物车后添加新商品！'}), 400
+
+            # 计算小计
+            total_price = quantity * item_price
+
+            # 检查购物车是否已有此商品
+            for item in session['cart']:
+                if item['item_id'] == item_id:
+                    item['quantity'] += quantity
+                    item['total_price'] += total_price
+                    break
+            else:
+                # 如果购物车中没有此商品，新增
+                session['cart'].append({
+                    'restaurant_id': restaurant_id,
+                    'item_id': item_id,
+                    'item_name': item_name,
+                    'item_price': item_price,
+                    'quantity': quantity,
+                    'total_price': total_price
+                })
+
+            session.modified = True  # 确保 session 更新生效
+
+            # 计算购物车总量和总金额
+            total_quantity = sum(item['quantity'] for item in session['cart'])
+            total_amount = sum(item['total_price'] for item in session['cart'])
+
+            return jsonify({'success': True, 'cartQuantity': total_quantity, 'cartAmount': total_amount})
+
+        except ValueError as e:
+            return jsonify({'success': False, 'message': f'数据处理错误: {e}'}), 400
+
+    elif request.method == 'GET':
+        # 处理 GET 请求，显示结算页面
+        cart = session.get('cart', [])
+        total_amount = sum(item['total_price'] for item in cart) if cart else 0
+
+        # 获取购物车中第一个商品的 ID，作为返回按钮的默认 ID
+        default_item_id = cart[0]['item_id'] if cart else None
+
+        return render_template('checkout.html', cart=cart, total_amount=total_amount, default_item_id=default_item_id)
+
+@app.route('/remove_from_cart', methods=['POST'])
+@login_required
+def remove_from_cart():
     try:
-        # 获取并验证数量
-        quantity = int(request.form.get('quantity', 1))
-        item_name = menu_item['name']
-        item_price = float(menu_item['price'])  # 确保是数值类型
+        data = request.get_json()
+        item_id = int(data['item_id'])
 
-        # 计算小计
-        total_price = quantity * item_price
+        # 检查购物车是否存在
+        if 'cart' not in session or not session['cart']:
+            return jsonify({'success': False, 'message': '购物车为空！'}), 404
 
-        # 确保购物车存在
-        if 'cart' not in session:
-            session['cart'] = []
+        # 删除指定商品
+        session['cart'] = [item for item in session['cart'] if item['item_id'] != item_id]
+        session.modified = True
 
-        # 将商品存储到 session
-        session['cart'].append({
-            'restaurant_id': menu_item.get('restaurant_id', 1),
-            'item_id': item_id,
-            'item_name': item_name,
-            'item_price': item_price,
-            'quantity': quantity,
-            'total_price': total_price
-        })
+        # 计算新的总金额
+        total_amount = sum(item['total_price'] for item in session['cart']) if session['cart'] else 0
 
-        session.modified = True  # 确保 session 更新生效
+        return jsonify({'success': True, 'totalAmount': total_amount})
+    except Exception as e:
+        print(f"删除商品失败: {e}")
+        return jsonify({'success': False, 'message': '删除商品失败'}), 500
 
-    except ValueError as e:
-        flash(f"数据处理错误: {e}")
-        return redirect(url_for('view_cart_item', item_id=item_id))
-
-    return redirect(url_for('checkout'))
-
-# 结算购物车
-@app.route('/checkout')
-def checkout():
-    cart = session.get('cart', [])
-
-    # 验证购物车是否为空
-    if not cart:
-        flash("購物車沒商品")
-        return render_template('noproduct.html')
-
-    # 使用字典来合并相同商品
-    grouped_cart = {}
-    for item in cart:
-        item_name = item['item_name']
-        if item_name in grouped_cart:
-            grouped_cart[item_name]['quantity'] += item['quantity']
-            grouped_cart[item_name]['total_price'] += item['total_price']
-        else:
-            grouped_cart[item_name] = item
-
-    # 计算总金额
-    total_amount = sum(item['total_price'] for item in grouped_cart.values())
-
-    return render_template('checkout.html', cart=grouped_cart.values(), total_amount=total_amount)
-
-@app.route('/sendorder')
+@app.route('/sendorder', methods=['POST'])
+@login_required
 def sendorder():
-    return render_template('sendorder.html')
+    try:
+        # 从表单中获取数据
+        user_id = int(request.form['user_id'])
+        total_amount = float(request.form['total_amount'])
+        restaurant_id = int(request.form['restaurant_id'])
+        order_items = request.form.getlist('order_items')
 
+        # 格式化商品数据
+        formatted_order_items = "; ".join(order_items)  # 格式如 "菜品1 x 2; 菜品2 x 1;"
+
+        # 调用 Send_order 插入订单数据，并获取订单号
+        order_id = Send_order(
+            restaurant_id=restaurant_id,
+            user_id=user_id,
+            item_id_and_quantity=formatted_order_items,  # 根据你的格式传递
+            total_price=total_amount
+        )
+        
+        if order_id:  # 如果订单插入成功并返回订单号
+            # 清空购物车
+            session.pop('cart', None)
+            return render_template('sendorder.html', order_id=order_id)
+        else:
+            return "订单提交失败，请稍后再试", 500
+
+    except Exception as e:
+        print(f"发送订单失败: {e}")
+        return "订单提交失败，请稍后再试", 500
+    
 @app.route('/comment')
+@login_required
 def comment():
     return render_template('comment.html')
 

@@ -81,8 +81,8 @@
             cursor: pointer;
             text-decoration: none;
             position: absolute;
-            bottom: 20px;
             left: 50%;
+            margin-top: 20px;
             transform: translateX(-50%);
         }
 
@@ -97,32 +97,64 @@
     </header>
 
     <main>
-        <!-- 返回按钮 -->
-        <a href="/cart_item" class="back-btn">返回菜單</a>
-
-        {% if cart %}
-        <div class="item-details">
-            <h3>购物车商品</h3>
-            {% for item in cart %}
-                <p><strong>餐厅名称：</strong> {{ item['restaurant_id'] }}</p>
-                <p><strong>商品名称：</strong> {{ item['item_name'] }}</p>
-                <p><strong>价格：</strong> ¥{{ item['item_price'] }}</p>
-                <p><strong>数量：</strong> {{ item['quantity'] }}</p>
-                <p><strong>小计：</strong> ¥{{ item['total_price'] }}</p>
-                <hr>
-            {% endfor %}
-            <div class="cart-total">
-                <p><strong>总计金额：</strong> ¥{{ total_amount }}</p>
+        {% if cart and cart|length > 0 %}
+            <div class="item-details">
+                <h3>购物车商品</h3>
+                {% for item in cart %}
+                    <p><strong>商品 ID：</strong> {{ item['item_id'] }}</p>
+                    <p><strong>价格：</strong> ¥{{ item['item_price'] }}</p>
+                    <p><strong>数量：</strong> {{ item['quantity'] }}</p>
+                    <p><strong>小计：</strong> ¥{{ item['total_price'] }}</p>
+                    <button 
+                    class="delete-btn" 
+                    style="background-color: red; color: white; border: none; cursor: pointer;" 
+                    onclick="deleteItem('{{ item['item_id'] }}')">
+                   删除
+                   </button>
+                    <hr>
+                {% endfor %}
+                <div class="cart-total">
+                    <p><strong>总计金额：</strong> ¥{{ total_amount }}</p>
+                </div>
             </div>
-        </div>
         {% else %}
-            <p>购物车为空。</p>
+            <p>购物车为空，请添加商品。</p>
         {% endif %}
-
-        <!-- Submit Order Button -->
-        <a href="{{ url_for('sendorder') }}" class="submit-order-btn">送出訂單</a>
-
+        <script>
+            function deleteItem(itemId) {
+                fetch(`/remove_from_cart`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ item_id: itemId }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // 刷新页面以更新购物车
+                        location.reload();
+                    } else {
+                        alert(data.message || '删除商品失败');
+                    }
+                })
+                .catch(error => {
+                    console.error('删除商品错误:', error);
+                    alert('删除商品失败，请稍后再试');
+                });
+            }
+        </script>        
     </main>
+
+    <form id="submit-order-form" method="POST" action="{{ url_for('sendorder') }}">
+        <input type="hidden" name="user_id" value="{{ user_id }}"> <!-- 用户 ID -->
+        <input type="hidden" name="total_amount" value="{{ total_amount }}"> <!-- 总金额 -->
+        <input type="hidden" name="restaurant_id" value="{{ cart[0]['restaurant_id'] }}"> <!-- 餐厅 ID -->
+        {% for item in cart %}
+            <input type="hidden" name="order_goods" value="{{ item['item_name'] }} x {{ item['quantity'] }}">
+        {% endfor %}
+        <button type="submit" class="submit-order-btn">送出訂單</button>
+    </form>
 </body>
 </html>
 

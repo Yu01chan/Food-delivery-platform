@@ -154,45 +154,6 @@ def notify_rider_to_pickup(order_id, restaurant_id):
         print(f"訂單 {order_id} 已準備好，已通知騎手取餐！")
         return True
     return False
-    
-def create_order(restaurant_id, customer_name, order_items):
-    try:
-        # 假设订单表名为 `orders`，订单项表名为 `order_items`
-        order_id = insert_into_db(
-            "INSERT INTO orders (restaurant_id, customer_name, status) VALUES (%s, %s, %s)",
-            (restaurant_id, customer_name, 'Pending')
-        )
-        for item_id in order_items:
-            insert_into_db(
-                "INSERT INTO order_items (order_id, menu_item_id) VALUES (%s, %s)",
-                (order_id, item_id)
-            )
-        return True
-    except Exception as e:
-        print(f"创建订单失败: {e}")
-        return False
-
-# 餐廳客戶管理
-def register_customer(c_id, password):
-    """註冊新餐廳顧客"""
-    try:
-        # 密碼加密
-        hashed_password = generate_password_hash(password)
-        query = "INSERT INTO customers (c_id, password) VALUES (%s, %s)"
-        execute_query(query, (c_id, hashed_password))  # 執行 SQL 插入操作
-        return True
-    except mysql.connector.IntegrityError as e:
-        print(f"註冊失敗: {e}")
-        return False
-      
-
-def login_customer(c_id, password):
-    """顧客登入檢查"""
-    query = "SELECT * FROM customers WHERE c_id = %s"
-    customer = execute_query(query, (c_id,), fetchone=True)
-    if customer and check_password_hash(customer['password'], password):  # 驗證密碼
-        return True
-    return False
 
 # 定義獲取菜單項目的函數
 def get_menu_items_customer_data():
@@ -213,10 +174,9 @@ def get_menu_restaurant_data(restaurant_id):
     params = (restaurant_id,)
     return execute_query(query, params, fetchall=True)
 
-
 # 根据商品ID获取菜单项
 def cartmenu_items(id):
-    query = "SELECT id, name, price FROM menu_items WHERE id = %s"
+    query = "SELECT id, name, price, restaurant_id FROM menu_items WHERE id = %s"
     params = (id,)
     return execute_query(query, params, fetchone=True)
 
@@ -224,6 +184,48 @@ def checkout_items(item_id):
     query = "SELECT restaurant_id, name, price FROM menu_items WHERE id = %s"
     params = (item_id,)
     return execute_query(query, params, fetchone=True)
+
+def insert_into_db(query, params):
+    """通用插入数据到数据库"""
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    try:
+        print(f"Executing query: {query} with params: {params}")  # 打印查询和参数
+        cursor.execute(query, params)
+        conn.commit()
+        return cursor.rowcount > 0  # 返回是否插入成功
+    except Exception as e:
+        print(f"数据库操作失败: {e}")  # 打印错误信息
+        conn.rollback()
+        return False
+    finally:
+        cursor.close()
+        conn.close()
+
+def Send_order(restaurant_id, user_id, item_id_and_quantity, total_price):
+    """插入订单数据到 orders 表"""
+    
+    # 格式化 order_items，将 item_id 和 quantity 合并
+    formatted_order_items = f"{item_id_and_quantity[0]}&{item_id_and_quantity[1]}"  # 使用 & 分隔 item_id 和 quantity
+    
+    query = """
+        INSERT INTO orders (
+            restaurant_id, customer_id, order_items, customer_total
+        ) VALUES (%s, %s, %s, %s)
+    """
+    params = (
+        restaurant_id, 
+        user_id,
+        formatted_order_items,  # 格式化后的 item_id&quantity
+        total_price
+    )
+    
+    if insert_into_db(query, params):  # 如果插入成功
+        # 获取插入数据的ID（自动生成的order_id）
+        order_id = cursor.lastrowid  # 获取插入后的自增ID
+        return order_id
+    else:
+        return None
 
 
 

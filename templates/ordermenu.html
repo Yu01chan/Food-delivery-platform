@@ -129,7 +129,7 @@
                         <h3>{{ item.name }}</h3>
                         <p class="description">{{ item.description }}</p>
                         <p class="price">價格: ¥{{ item.price }}</p>
-                        <!-- 添加按钮 -->
+                        <!-- 加入購物車 -->
                         <form action="{{ url_for('view_cart_item', item_id=item.id) }}" method="GET">
                             <button type="submit" class="add-to-cart-btn">加入購物車</button>
                         </form>

@@ -56,17 +56,15 @@
 </head>
 <body>
     <header>
-        <h1>購物車</h1>
+        <h1>訂單提交成功</h1>
     </header>
 
     <main>
-        <!-- Order confirmation message -->
-        <div class="order-confirmation">
-            已送出訂單
-        </div>
+        <p>您的訂單號為：<strong>{{ order_id }}</strong></p>
+        <p>请妥善保管訂單號，以便查询訂單狀態。</p>
 
-        <!-- Return to menu button -->
-        <a href="/customermenu" class="back-btn">返回頁面</a>
+        <!-- 返回菜单按钮 -->
+        <a href="/customermenu" class="back-btn">返回菜单</a>
     </main>
 </body>
 </html>
