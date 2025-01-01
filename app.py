@@ -384,19 +384,30 @@ def remove_from_cart():
 def sendorder():
     try:
         # 从表单中获取数据
-        user_id = int(request.form['user_id'])
+        user_id = request.form['user_id']
         total_amount = float(request.form['total_amount'])
         restaurant_id = int(request.form['restaurant_id'])
-        order_items = request.form.getlist('order_items')
+        order_items = request.form.getlist('order_items')  # 获取订单商品数据
 
-        # 格式化商品数据
-        formatted_order_items = "; ".join(order_items)  # 格式如 "菜品1 x 2; 菜品2 x 1;"
+        # 处理 order_items，格式：菜品名称 x 数量
+        formatted_order_items = []
+        for item in order_items:
+            try:
+                # 解析 "菜品名称 x 数量" 格式
+                item_name, quantity = item.split(' x ')
+                formatted_order_items.append((item_name.strip(), int(quantity)))  # 去除可能的空格并转换为元组
+            except ValueError:
+                # 如果数据格式不正确，抛出异常
+                raise ValueError(f"订单项格式不正确: {item}")
+
+        # 格式化商品数据，转换为 "item_name&quantity" 的字符串
+        formatted_order_items_str = "; ".join([f"{item[0]}&{item[1]}" for item in formatted_order_items])
 
         # 调用 Send_order 插入订单数据，并获取订单号
         order_id = Send_order(
             restaurant_id=restaurant_id,
             user_id=user_id,
-            item_id_and_quantity=formatted_order_items,  # 根据你的格式传递
+            item_id_and_quantity=formatted_order_items,  # 使用元组列表
             total_price=total_amount
         )
         
@@ -410,6 +421,9 @@ def sendorder():
     except Exception as e:
         print(f"发送订单失败: {e}")
         return "订单提交失败，请稍后再试", 500
+
+
+
     
 @app.route('/comment')
 @login_required

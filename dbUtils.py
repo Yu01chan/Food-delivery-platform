@@ -204,30 +204,45 @@ def insert_into_db(query, params):
 
 def Send_order(restaurant_id, user_id, item_id_and_quantity, total_price):
     """插入订单数据到 orders 表"""
-    
-    # 格式化 order_items，将 item_id 和 quantity 合并
-    formatted_order_items = f"{item_id_and_quantity[0]}&{item_id_and_quantity[1]}"  # 使用 & 分隔 item_id 和 quantity
-    
-    query = """
-        INSERT INTO orders (
-            restaurant_id, customer_id, order_items, customer_total
-        ) VALUES (%s, %s, %s, %s)
-    """
-    params = (
-        restaurant_id, 
-        user_id,
-        formatted_order_items,  # 格式化后的 item_id&quantity
-        total_price
-    )
-    
-    if insert_into_db(query, params):  # 如果插入成功
+    try:
+        # 格式化 order_items，将 item_id 和 quantity 合并
+        formatted_order_items = "; ".join([f"{item_id}&{quantity}" for item_id, quantity in item_id_and_quantity])
+
+        # SQL 插入语句
+        query = """
+            INSERT INTO orders (
+                restaurant_id, user_id, order_items, customer_total
+            ) VALUES (%s, %s, %s, %s)
+        """
+        params = (
+            restaurant_id, 
+            user_id,
+            formatted_order_items,  # 格式化后的 item_id&quantity
+            total_price
+        )
+
+        # 使用 mysql.connector 来进行数据库连接和执行
+        connection = mysql.connector.connect(host='localhost', user='root', password='', db='restaurant_platform')
+        cursor = connection.cursor()
+
+        # 执行插入操作
+        cursor.execute(query, params)
+        connection.commit()
+
         # 获取插入数据的ID（自动生成的order_id）
-        order_id = cursor.lastrowid  # 获取插入后的自增ID
-        return order_id
-    else:
+        order_id = cursor.lastrowid
+
+        # 关闭连接
+        cursor.close()
+        connection.close()
+
+        if order_id:
+            return order_id
+        else:
+            return None
+    except Exception as e:
+        print(f"插入订单失败: {e}")
         return None
-
-
 
 
 
