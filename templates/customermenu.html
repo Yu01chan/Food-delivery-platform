@@ -6,114 +6,126 @@
     <title>美食菜單</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Arial', sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f4f4f4;
+            background-color: #f9f9f9;
             color: #333;
             display: flex;
             flex-direction: column;
-            min-height: 100vh; /* 页面高度至少等于视口高度 */
+            min-height: 100vh;
+        }
+
+        header {
+            background-color: #8b4513;
+            padding: 20px;
+            color: white;
+            text-align: center;
+            font-size: 24px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
         .logout-btn {
-         position: absolute;
-         top: 20px;    /* 保持在頁面頂部 */
-         right: 20px;   /* 移至右邊距 */
-         padding: 10px 20px;
-         background-color: #8b4513;  /* 底色 #8b4513 */
-         color: white;  /* 文字顏色白色 */
-         font-size: 16px;
-         border-radius: 4px;
-         text-decoration: none;  /* 移除默認的下劃線 */
-         font-weight: bold;
-         box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);  /* 陰影效果 */
-         transition: background-color 0.3s ease;
-         }
-
-    .logout-btn:hover {
-         background-color: #5c4033;  /* 滑鼠懸停時底色變暗 */
-         }      
-
-
-        .back-btn {
-            position: absolute; /* 使用绝对定位 */
-            top: 10px;
-            left: 20px;
-            text-decoration: none;
-            color: #fff;
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
             background-color: #5c4033;
-            padding: 8px 16px;
-            border-radius: 5px;
+            color: white;
+            font-size: 16px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             transition: background-color 0.3s ease;
         }
 
-        .back-btn:hover {
+        .logout-btn:hover {
             background-color: #3c2f21;
         }
 
-        .order-btn {
-        display: inline-block;
-        text-decoration: none;
-        color: white;
-        background-color: #28a745; /* 绿色背景 */
-        padding: 10px 20px;
-        border-radius: 5px;
-        font-size: 16px;
-        font-weight: bold;
-        transition: background-color 0.3s ease;
-    }
+        .button-container {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
 
-    .order-btn:hover {
-        background-color: #218838; /* 更深的绿色 */
-    }
+        .order-btn, .cart-btn, .view-order-btn {
+            display: inline-block;
+            text-decoration: none;
+            color: white;
+            background-color: #28a745;
+            padding: 12px 25px;
+            border-radius: 5px;
+            font-size: 18px;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+            margin: 0 10px;
+        }
+
+        .order-btn:hover, .cart-btn:hover, .view-order-btn:hover {
+            background-color: #218838;
+        }
+
+        .cart-btn {
+            background-color: #007bff;
+        }
+
+        .view-order-btn {
+            background-color: #ff5722;
+        }
 
         main {
-            flex: 1; /* 主体内容占据剩余空间 */
-            padding: 20px;
-            padding-bottom: 80px; /* 确保底部留出足够空间 */
+            flex: 1;
+            padding: 40px;
+            padding-bottom: 80px;
         }
 
         .menu-list {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 20px;
-            margin-top: 20px;
+            margin-top: 40px;
         }
 
         .menu-item {
             background-color: white;
             border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             padding: 20px;
             text-align: center;
-            transition: transform 0.2s ease;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
         .menu-item:hover {
-            transform: translateY(-5px);
+            transform: translateY(-8px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
         }
 
         .menu-item h3 {
-            font-size: 22px;
-            margin: 10px 0;
+            font-size: 24px;
+            margin: 15px 0;
+            color: #333;
         }
 
         .menu-item .description {
             font-size: 16px;
             color: #555;
+            margin-bottom: 15px;
         }
 
         .menu-item .price {
             font-size: 18px;
             font-weight: bold;
             margin-top: 10px;
+            color: #28a745;
         }
 
         .menu-item-image img {
             max-width: 100%;
             height: auto;
             border-radius: 8px;
+            margin-bottom: 15px;
         }
 
         .menu-item-image p {
@@ -125,7 +137,42 @@
             background-color: #8b4513;
             color: white;
             text-align: center;
-            padding: 10px 0;
+            padding: 15px 0;
+            font-size: 14px;
+            position: relative;
+            bottom: 0;
+            width: 100%;
+        }
+
+        /* 响应式布局 */
+        @media (max-width: 768px) {
+            .menu-list {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .button-container {
+                flex-direction: column;
+            }
+
+            .order-btn, .cart-btn, .view-order-btn {
+                margin: 10px 0;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .menu-list {
+                grid-template-columns: 1fr;
+            }
+
+            header {
+                font-size: 20px;
+                padding: 15px;
+            }
+
+            .order-btn, .cart-btn, .view-order-btn {
+                font-size: 16px;
+                padding: 10px 20px;
+            }
         }
     </style>
 </head>
@@ -133,14 +180,18 @@
     <header>
         <a href="{{ url_for('logout') }}" class="logout-btn">登出</a>
         <h1>美食菜單</h1>
-       
     </header>
 
     <main>
+        <!-- 顯示三個按鈕 -->
+        <div class="button-container">
+            <a href="{{ url_for('view_orders') }}" class="view-order-btn">查看目前訂單</a>
+        </div>
+        
         <section class="menu-list">
             {% for restaurant_id, items in menu_items.items() %}
             <div class="restaurant-section">
-                <h2>餐廳名稱: {{ restaurant_id }}</h2> <!-- 顯示餐廳 ID -->
+                <h2>餐廳名稱: {{ restaurant_id }}</h2> 
                 <a href="{{ url_for('get_menu_restaurant', restaurant_id=restaurant_id) }}" class="order-btn">點餐</a>
                 {% for item in items %}
                 <div class="menu-item">
@@ -162,12 +213,9 @@
             {% endfor %}
         </section>
     </main>
-    
 
     <footer>
         <p>&copy; 2024 餐厅管理平台</p>
     </footer>
 </body>
 </html>
-
-

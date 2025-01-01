@@ -7,7 +7,8 @@ from wtforms.validators import DataRequired, Length
 from flask import session, redirect, url_for, request, render_template
 from flask import jsonify
 import os
-import uuid
+from flask_login import LoginManager
+from flask_login import current_user
 from dbUtils import (
     register_users, login_users, add_menu_item, get_menu_items,
     edit_menu_item, delete_menu_item, get_orders, get_order_details,
@@ -21,6 +22,14 @@ app.config['SECRET_KEY'] = '123TyU%^&'
 app.config['UPLOAD_FOLDER'] = 'static/images'
 app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif'}
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 限制最大上传文件为 16MB
+
+
+login_manager = LoginManager()
+login_manager.init_app(app)
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))  # 确保返回的是 User 实例
 
 # Utility Functions
 def allowed_file(filename):
@@ -216,12 +225,16 @@ def order_details(order_id):
 @login_required
 def update_order_status_route(order_id):
     new_status = request.form['status']
+    if not new_status:
+        flash("无效的状态！")
+        return redirect(url_for("order_details", order_id=order_id))
     restaurant_id = session.get('user_id')
     if update_order_status(order_id, new_status, restaurant_id):
         flash("订单状态更新成功！")
     else:
         flash("更新订单状态失败。")
     return redirect(url_for("orders"))
+
 
 @app.route("/notify_rider/<int:order_id>", methods=["POST"])
 @login_required
@@ -386,7 +399,7 @@ def sendorder():
         # 从表单中获取数据
         user_id = request.form['user_id']
         total_amount = float(request.form['total_amount'])
-        restaurant_id = int(request.form['restaurant_id'])
+        restaurant_id = request.form['restaurant_id']
         order_items = request.form.getlist('order_items')  # 获取订单商品数据
 
         # 处理 order_items，格式：菜品名称 x 数量
@@ -401,7 +414,7 @@ def sendorder():
                 raise ValueError(f"订单项格式不正确: {item}")
 
         # 格式化商品数据，转换为 "item_name&quantity" 的字符串
-        formatted_order_items_str = "; ".join([f"{item[0]}&{item[1]}" for item in formatted_order_items])
+        formatted_order_items_str = "; ".join([f"{item[0]}*{item[1]}" for item in formatted_order_items])
 
         # 调用 Send_order 插入订单数据，并获取订单号
         order_id = Send_order(
@@ -432,20 +445,30 @@ def comment():
 
 
 
+@app.route('/vieworders')
+@login_required
+def view_orders():
+    """展示用户的订单状态"""
+    try:
+        print(f"用户登录状态: {current_user.is_authenticated}")  # 打印登录状态
+        print(f"当前用户 ID: {current_user.id}")  # 打印用户 ID
+        
+        if not current_user.is_authenticated:
+            flash("您必须先登录才能查看订单")
+            return redirect(url_for('login'))  # 重定向到登录页
+        
+        user_id = current_user.id
+        orders = get_user_orders(user_id)
+        
+        if not orders:
+            flash("您没有任何订单")
+        
+        return render_template('view_orders.html', orders=orders)
+    
+    except Exception as e:
+        print(f"获取订单失败: {e}")
+        flash("无法获取订单，请稍后再试")
+        return redirect(url_for('index'))
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+if __name__ == '__main__':
+    app.run(debug=True)

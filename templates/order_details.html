@@ -4,29 +4,165 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>訂單詳情</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f8f8f8;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .order-details-container {
+            width: 90%;
+            max-width: 800px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin: 20px;
+        }
+
+        h1 {
+            font-size: 28px;
+            text-align: center;
+            color: #8B5A2B; /* 黄褐色 */
+            margin-bottom: 20px;
+        }
+
+        .order-id,
+        .order-status {
+            font-size: 18px;
+            color: #333;
+            margin: 12px 0;
+        }
+
+        .order-id strong,
+        .order-status strong {
+            color: #8B5A2B;
+        }
+
+        .order-items-list {
+            list-style: none;
+            padding: 0;
+            margin: 20px 0;
+        }
+
+        .order-item {
+            background-color: #f9f9f9;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            font-size: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .order-item span {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .order-item .price {
+            color: #8B5A2B;
+        }
+
+        .status-update-form {
+            margin-top: 30px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .status-update-form label {
+            font-size: 18px;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        .status-update-form select {
+            font-size: 16px;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            background-color: #f9f9f9;
+            width: 200px;
+            cursor: pointer;
+        }
+
+        .update-btn {
+            background-color: #8B5A2B; /* 黄褐色 */
+            color: white;
+            padding: 12px 20px;
+            font-size: 18px;
+            border-radius: 6px;
+            border: none;
+            width: 220px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            text-align: center;
+        }
+
+        .update-btn:hover {
+            background-color: #6B3F2D; /* 更深的黄褐色 */
+        }
+
+        .back-btn {
+            background-color: #8B5A2B; /* 黄褐色 */
+            color: white;
+            padding: 12px 20px;
+            font-size: 18px;
+            border-radius: 6px;
+            text-decoration: none;
+            display: inline-block;
+            margin-bottom: 30px;
+            text-align: center;
+            transition: background-color 0.3s;
+        }
+
+        .back-btn:hover {
+            background-color: #6B3F2D; /* 更深的黄褐色 */
+        }
+
+        .back-btn:active {
+            transform: scale(0.98);
+        }
+    </style>
 </head>
 <body>
     <div class="order-details-container">
+        <!-- 返回按钮 -->
+        <a href="{{ url_for('orders') }}" class="back-btn">返回訂單列表</a>
+
         <h1>訂單詳情</h1>
         <p class="order-id">訂單編號: <strong>{{ order['id'] }}</strong></p>
         <p class="order-status">狀態: <strong>{{ order['status'] }}</strong></p>
+        
         <h2>訂單內容</h2>
         <ul class="order-items-list">
             {% for item in order_items %}
                 <li class="order-item">
-                    <span>{{ item['name'] }}</span> - ${{ item['price'] }} x {{ item['quantity'] }}
+                    <span>{{ item['name'] }}</span>
+                    <span class="price">${{ item['price'] }} x {{ item['quantity'] }}</span>
                 </li>
             {% endfor %}
         </ul>
+
+        <!-- 状态更新表单 -->
         <form method="POST" action="{{ url_for('update_order_status_route', order_id=order['id']) }}" class="status-update-form">
             <label for="status">更新狀態:</label>
             <select id="status" name="status" required>
-                <option value="Pending" {% if order['status'] == 'Pending' %}selected{% endif %}>待處理</option>
-                <option value="In Progress" {% if order['status'] == 'In Progress' %}selected{% endif %}>進行中</option>
-                <option value="Completed" {% if order['status'] == 'Completed' %}selected{% endif %}>完成</option>
-            </select>
-            <button type="submit" class="update-btn">更新</button>
+				<option value="Pending" {% if order['status'] == 'Pending' %}selected{% endif %}>待處理</option>
+				<option value="In Progress" {% if order['status'] == 'In Progress' %}selected{% endif %}>進行中</option>
+				<option value="Completed" {% if order['status'] == 'Completed' %}selected{% endif %}>完成</option>
+			</select>
+            <button type="submit" class="update-btn">更新訂單狀態</button>
         </form>
     </div>
 </body>

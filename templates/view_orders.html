@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>查看订单状态</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            text-align: center;
+            padding: 20px;
+        }
+        .order-item {
+            background-color: white;
+            padding: 20px;
+            margin: 10px 0;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .order-item h3 {
+            margin: 0;
+            font-size: 20px;
+        }
+        .order-item p {
+            margin: 5px 0;
+            font-size: 16px;
+        }
+        .status-pending {
+            color: #ff9800;
+            font-weight: bold;
+        }
+        .status-processing {
+            color: #ff5722;
+            font-weight: bold;
+        }
+        .status-completed {
+            color: #007bff;
+            font-weight: bold;
+        }
+        .order-item ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .order-item ul li {
+            font-size: 14px;
+            color: #555;
+        }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            margin-top: 20px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>您的订单状态</h1>
+
+    {% if orders %}
+        {% for order in orders %}
+            <div class="order-item">
+                <h3>订单号：{{ order.id }}</h3>
+                <p>餐厅 ID：{{ order.restaurant_id }}</p>
+                <p>总金额：¥{{ order.customer_total }}</p>
+                <p class="status-{{ order.status.lower() }}">状态：{{ order.status }}</p>
+                <h4>餐品：</h4>
+                <ul>
+                    {% for item in order.order_items.split(';') %}
+                        <li>{{ item }}</li>
+                    {% endfor %}
+                </ul>
+                <p>订单创建时间：{{ order.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>您当前没有任何订单。</p>
+    {% endif %}
+
+    <a href="{{ url_for('index') }}" class="button">返回首页</a>
+</body>
+</html>

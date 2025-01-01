@@ -4,16 +4,134 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>訂單管理</title>
-    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+
+        .order-container {
+            width: 80%;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #8B5A2B; /* 黄褐色 */
+            margin-bottom: 30px;
+        }
+
+        .order-list {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        .order-item {
+            background-color: #f9f9f9;
+            margin: 10px 0;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .order-id,
+        .order-status {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .details-link {
+            text-decoration: none;
+            color: #8B5A2B; /* 黄褐色 */
+            font-size: 16px;
+            font-weight: normal;
+            margin-top: 10px;
+            transition: color 0.3s;
+        }
+
+        .details-link:hover {
+            color: #6B3F2D; /* 更深的黄褐色 */
+        }
+
+        .order-items {
+            background-color: #f1f1f1;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .back-btn {
+            display: inline-block;
+            background-color: #8B5A2B; /* 黄褐色 */
+            color: white;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            text-decoration: none;
+            margin-bottom: 20px;
+            transition: background-color 0.3s;
+            display: flex;
+            justify-content: center;
+        }
+
+        .back-btn:hover {
+            background-color: #6B3F2D; /* 更深的黄褐色 */
+        }
+
+        .order-item > div {
+            margin-bottom: 15px;
+        }
+
+        .order-item h4 {
+            font-size: 18px;
+            color: #8B5A2B;
+        }
+
+        .order-item .order-id {
+            font-size: 18px;
+            color: #333;
+        }
+
+        .order-item .order-status {
+            font-size: 16px;
+            color: #6B3F2D;
+        }
+    </style>
 </head>
 <body>
     <div class="order-container">
+        <!-- 返回按钮 -->
+        <a href="{{ url_for('index') }}" class="back-btn">返回訂單列表</a>
+        
         <h1>訂單管理</h1>
         <ul class="order-list">
             {% for order in orders %}
                 <li class="order-item">
-                    <span class="order-id">訂單編號: {{ order['id'] }}</span>
-                    <span class="order-status">狀態: {{ order['status'] }}</span>
+                    <div>
+                        <!-- 订单编号 -->
+                        <span class="order-id">訂單編號: {{ order['id'] }}</span>
+                    </div>
+                    <div class="order-items">
+                        <!-- 订单项 (商品名称) -->
+                        <h4>訂單名稱：</h4>
+                        <p>{{ order['order_items'] }}</p> <!-- 显示订单项 -->
+                    </div>
+                    <div>
+                        <!-- 订单状态 -->
+                        <span class="order-status">狀態: {{ order['status'] }}</span>
+                    </div>
                     <a href="{{ url_for('order_details', order_id=order['id']) }}" class="details-link">詳細資料</a>
                 </li>
             {% endfor %}

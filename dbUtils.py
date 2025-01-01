@@ -145,8 +145,12 @@ def update_order_status(order_id, status, restaurant_id):
         SET status = %s 
         WHERE id = %s AND restaurant_id = %s
     """
-    execute_query(query, (status, order_id, restaurant_id))
-    return True
+    try:
+        execute_query(query, (status, order_id, restaurant_id))
+        return True
+    except Exception as e:
+        print(f"更新订单状态失败: {e}")
+        return False
 
 def notify_rider_to_pickup(order_id, restaurant_id):
     """通知騎手取餐"""
@@ -243,6 +247,12 @@ def Send_order(restaurant_id, user_id, item_id_and_quantity, total_price):
     except Exception as e:
         print(f"插入订单失败: {e}")
         return None
+
+def get_user_orders(user_id):
+    """根据用户 ID 获取该用户的所有订单"""
+    query = "SELECT * FROM orders WHERE user_id = %s"
+    orders = execute_query(query, (user_id,), fetchall=True)
+    return orders
 
 
 
