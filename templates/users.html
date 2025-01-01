@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>餐廳註冊</title>
+    <title>註冊</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -77,9 +77,9 @@
 </head>
 <body>
     <div class="register-container">
-        <h1>餐廳註冊</h1>
-        <p>歡迎加入餐廳平台，請填寫以下資訊完成註冊。</p>
-        <form method="POST" action="{{ url_for('register') }}">
+        <h1>註冊</h1>
+        <p>歡迎加入XX eats，請填寫以下資訊完成註冊。</p>
+        <form method="POST" action="{{ url_for('users') }}">
             <div class="form-group">
                 <label for="user_id">帳號:</label>
                 <input type="text" id="user_id" name="user_id" required placeholder="輸入帳號" 
