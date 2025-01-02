@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-Hans">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>外送员订单</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+        h1 {
+            font-size: 32px;
+            color: #5d4037;
+            margin-bottom: 30px;
+        }
+        .order-item {
+            background-color: #fff;
+            padding: 20px;
+            margin: 20px auto;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 80%;
+            max-width: 700px;
+            text-align: left;
+        }
+        .order-item h3 {
+            font-size: 24px;
+            color: #8b4513;
+            margin-bottom: 15px;
+        }
+        .order-item p {
+            font-size: 16px;
+            color: #4b2e2a;
+            margin: 8px 0;
+        }
+        .button {
+            display: inline-block;
+            padding: 12px 30px;
+            background-color: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 30px;
+            font-size: 16px;
+            margin-top: 20px;
+            transition: background-color 0.3s;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>待接订单</h1>
+
+    {% if orders %}
+        {% for order in orders %}
+            <div class="order-item">
+                <h3>订单号：{{ order.id }}</h3>
+                <p><strong>餐厅 ID：</strong>{{ order.restaurant_id }}</p>
+                <p><strong>总金额：</strong>¥{{ order.customer_total }}</p>
+                <p><strong>订单状态：</strong>{{ order.status }}</p>
+                <form action="{{ url_for('accept_order', order_id=order.id) }}" method="POST">
+                    <button type="submit" class="button">接单</button>
+                </form>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>没有待接订单。</p>
+    {% endif %}
+
+</body>
+</html>

@@ -6,6 +6,7 @@ from wtforms import StringField, PasswordField, SubmitField, FileField, FloatFie
 from wtforms.validators import DataRequired, Length
 from flask import session, redirect, url_for, request, render_template
 from flask import jsonify
+import dbUtils
 import uuid
 import os
 from dbUtils import (
@@ -13,10 +14,11 @@ from dbUtils import (
     edit_menu_item, delete_menu_item, get_orders, get_order_details,
     update_order_status, notify_rider_to_pickup,
     get_menu_items_customer_data,get_menu_restaurant_data,
-    cartmenu_items,checkout_items,execute_query,Send_order,get_user_orders,submit_order_review
-
-)
-app = Flask(__name__)
+    cartmenu_items,checkout_items,execute_query,Send_order,get_user_orders,submit_order_review,
+    get_rider_orders, is_order_assigned, assign_order_to_rider,fetch_orders_by_rider,update_order_status_to_delivered,update_order_status_to_on_the_way,
+    get_order_by_id_and_rider
+)                                                                                              
+app = Flask(__name__)                                                                          
 app.config['SECRET_KEY'] = '123TyU%^&'
 app.config['UPLOAD_FOLDER'] = 'static/images'
 app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif'}
@@ -90,7 +92,7 @@ def login():
             elif user['role'] == 'customer':
                 return redirect(url_for('customermenu'))  # 如果是顧客，跳轉到 /customermenu
             elif user['role'] == 'delivery':
-                return redirect(url_for('view_orders'))  # 如果是外送員，跳轉到 /vieworders
+                return redirect(url_for('rider_dashboard'))  # 如果是外送員，跳轉到 /vieworders
         else:
             flash("登入失敗，請檢察您的帳密")
     return render_template("login.html")
@@ -99,6 +101,7 @@ def login():
 @login_required
 def index():
     return render_template("index.html")
+
 
 @app.route("/menu")
 @login_required
@@ -214,7 +217,12 @@ def orders():
 @login_required
 def order_details(order_id):
     order, order_items = get_order_details(order_id)
+    if not order:  # 如果訂單不存在，返回錯誤
+        flash("訂單不存在！")
+        return redirect(url_for("orders"))
     return render_template("order_details.html", order=order, order_items=order_items)
+
+
 
 @app.route("/update_order_status/<int:order_id>", methods=["POST"])
 @login_required
@@ -229,6 +237,7 @@ def update_order_status_route(order_id):
     else:
         flash("更新訂單狀態失敗。")
     return redirect(url_for("orders"))
+
 
 
 @app.route("/notify_rider/<int:order_id>", methods=["POST"])
@@ -392,7 +401,7 @@ def remove_from_cart():
 @login_required
 def sendorder():
     try:
-        # 从 session 獲取 user_id
+        # 从 session 获取 user_id
         user_id = session.get('user_id')
         if not user_id:
             return "使用者未登入或會話已過期", 401
@@ -411,8 +420,11 @@ def sendorder():
                 formatted_order_items.append((item_name.strip(), int(quantity)))  # 去除可能的空格並轉換為元組
             except ValueError:
                 # 如果資料格式不正確，拋出異常
-                raise ValueError(f"訂單格式不正確: {item}")
-            
+                raise ValueError(f"订单项格式不正确: {item}")
+
+        # 格式化商品資料，轉換為「item_name*quantity」的字串
+        formatted_order_items_str = "; ".join([f"{item[0]}*{item[1]}" for item in formatted_order_items])
+
         # 呼叫 Send_order 插入訂單資料，並獲取訂單號
         order_id = Send_order(
             restaurant_id=restaurant_id,
@@ -553,51 +565,111 @@ def submit_review(order_id):
         return redirect(url_for('rate_order', order_id=order_id))
 
 #外送員
-# 儀表板頁面
-@app.route("/rider/dashboard")
-@login_required
+@app.route('/rider_dashboard')
 def rider_dashboard():
-    active_orders = get_available_orders(status="active", rider_id=session['rider_id'])
-    return render_template("rider_dashboard.html", active_orders=active_orders)
+    rider_id = session.get('user_id')
+    if not rider_id:
+        return redirect(url_for('login'))
+    
+    # 获取所有的订单，不做任何过滤
+    orders = get_rider_orders()  # 不传递任何参数，查询所有订单
 
-# 接單頁面
-@app.route("/rider/orders")
-@login_required
-def rider_orders():
-    available_orders = get_available_orders()  # 獲取所有尚未被接單的訂單
-    return render_template("rider_orders.html", orders=available_orders)
+    print(f"Fetched {len(orders)} orders.")  # 输出调试信息
 
-@app.route("/rider/accept_order/<int:order_id>", methods=["POST"])
-@login_required
-def rider_accept_order(order_id):
-    rider_id = session.get('rider_id')
-    if accept_order(order_id, rider_id):
-        flash("成功接單！")
+    return render_template('rider_dashboard.html', user_id=rider_id, orders=orders)
+
+@app.route('/available_orders')
+def available_orders():
+    # 获取所有的订单
+    orders = get_rider_orders()  # 不传递任何参数，查询所有订单
+    print(f"Fetched {len(orders)} available orders.")
+
+    return render_template('available_orders.html', orders=orders)
+
+
+@app.route('/pick_order/<int:order_id>')
+def pick_order(order_id):
+    # 外送员选择取餐订单
+    rider_id = session.get('user_id')
+    
+    if rider_id:
+        # 确保外送员没有重复分配相同的订单
+        if not is_order_assigned(order_id):  # 检查订单是否已经被接单
+            # 更新订单状态
+            if assign_order_to_rider(order_id, rider_id):  # 如果成功分配订单
+                flash("Order has been assigned to you successfully!", "success")  # 显示成功消息
+                return redirect(url_for('available_orders'))  # 重定向回待接单页面
+            else:
+                flash("Error: Could not assign this order.", "danger")
+                return redirect(url_for('available_orders'))
+        else:
+            flash("This order has already been assigned.", "danger")  # 如果订单已被接单
+            return redirect(url_for('available_orders'))
+    flash("Please log in to continue.")  # 若未登录显示提示
+    return redirect(url_for('login'))
+
+@app.route('/start_delivery/<int:order_id>', methods=['GET', 'POST'])
+def start_delivery(order_id):
+    rider_id = session.get('user_id')
+    
+    if rider_id:
+        # 更新訂單狀態為 'On the Way'
+        update_order_status_to_on_the_way(order_id, rider_id)
+        flash("您已成功取餐，正在外送中！")
+        return redirect(url_for('pick_up_orders'))  # 跳轉回待取餐頁面
     else:
-        flash("接單失敗！")
-    return redirect(url_for('rider_orders'))  # 接單後回到接單頁面
+        flash("請先登入！")
+        return redirect(url_for('login'))
 
-# 訂單取餐
-@app.route("/rider/pickup_order/<int:order_id>", methods=["POST"])
-@login_required
-def rider_pickup_order(order_id):
-    rider_id = session.get('rider_id')
-    if pickup_order(order_id, rider_id):
-        flash("已取餐，請前往送達！")
+@app.route('/on_delivery/<int:order_id>', methods=['GET'])
+def on_delivery(order_id):
+    rider_id = session.get('user_id')  # 获取当前骑手的 user_id
+    
+    if rider_id:
+        # 从 dbutils 获取该订单和骑手的关联信息
+        order = dbUtils.get_order_by_id_and_rider(order_id, rider_id)
+        
+        if order:
+            return render_template('pick_up_orders.html', order=order)  # 渲染订单详细页面
+        else:
+            flash("订单不存在或您没有权限查看该订单！")
+            return redirect(url_for('pick_up_orders'))  # 返回待取餐订单列表页面
     else:
-        flash("操作失敗！")
-    return redirect(url_for('rider_dashboard'))
+        flash("请先登录！")
+        return redirect(url_for('login'))  # 如果没有登录，跳转到登录页面
 
-# 訂單送達
-@app.route("/rider/complete_order/<int:order_id>", methods=["POST"])
-@login_required
-def rider_complete_order(order_id):
-    rider_id = session.get('rider_id')
-    if complete_order(order_id, rider_id):
-        flash("訂單已完成！")
+        
+@app.route('/pick_up_orders')
+def pick_up_orders():
+    # 获取当前登录的外送员ID
+    rider_id = session.get('user_id')
+    
+    if rider_id:
+        # 获取待取餐的订单，状态为 'picked up' 或 'On the way'
+        orders = fetch_orders_by_rider(rider_id)
+        
+        if orders:
+            return render_template('pick_up_orders.html', orders=orders)  # 渲染页面并传递订单数据
+        else:
+            return render_template('pick_up_orders.html', orders=[])  # 如果没有待取餐的订单，传递空列表
     else:
-        flash("完成訂單失敗！")
-    return redirect(url_for('rider_dashboard'))
+        flash("Please log in to continue.")  # 如果没有登录，弹出提示
+        return redirect(url_for('login'))  # 重定向到登录页面
+
+@app.route('/complete_delivery/<int:order_id>', methods=['GET'])
+def complete_delivery(order_id):
+    rider_id = session.get('user_id')  # 获取当前登录的外送员ID
+    
+    if rider_id:
+        # 更新订单状态为 'Delivered'（已送达）
+        update_order_status_to_delivered(order_id, rider_id)
+        flash("订单已送达！")
+        return redirect(url_for('pick_up_orders'))
+    else:
+        flash("请先登录！")
+        return redirect(url_for('login'))
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)

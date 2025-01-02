@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>待取餐訂單</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #fdf6e3; /* 淡黄色背景 */
+            margin: 0;
+            padding: 0;
+            text-align: center;
+            color: #5d4037; /* 深褐色文字 */
+        }
+
+        h1 {
+            font-size: 36px;
+            color: #3e2723; /* 深褐色标题 */
+            margin-top: 40px;
+            margin-bottom: 40px;
+            font-weight: bold;
+        }
+
+        .order-item {
+            background-color: #ffffff;
+            padding: 20px;
+            margin: 20px auto;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            width: 80%;
+            max-width: 750px;
+            text-align: left;
+            transition: transform 0.3s ease-in-out;
+        }
+
+        .order-item:hover {
+            transform: translateY(-10px);
+        }
+
+        .order-item h3 {
+            font-size: 24px;
+            color: #5d4037;
+            margin-bottom: 10px;
+        }
+
+        .order-item p {
+            font-size: 18px;
+            margin: 8px 0;
+        }
+
+        .button {
+            display: inline-block;
+            padding: 12px 25px;
+            color: #ffffff;
+            background-color: #8d6e63; /* 褐色按钮 */
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 18px;
+            margin-top: 15px;
+            transition: background-color 0.3s ease;
+        }
+
+        .button:hover {
+            background-color: #6d4c41; /* 深褐色按钮 */
+        }
+
+        .button:active {
+            background-color: #4e342e; /* 更深褐色按钮 */
+        }
+
+        .order-items {
+            font-size: 16px;
+            color: #6c757d;
+            margin-top: 10px;
+            white-space: nowrap; /* 禁止換行 */
+        }
+
+        .no-orders {
+            font-size: 20px;
+            color: #dc3545;
+            margin-top: 50px;
+        }
+
+        .back-button {
+            margin-top: 30px;
+            padding: 12px 25px;
+            background-color: #f57c00; /* 橙色背景返回按钮 */
+            font-size: 18px;
+            color: white;
+            border-radius: 8px;
+            text-decoration: none;
+            display: inline-block;
+            transition: background-color 0.3s ease;
+        }
+
+        .back-button:hover {
+            background-color: #ef6c00; /* 橙色返回按钮 */
+        }
+
+        /* responsive */
+        @media (max-width: 768px) {
+            .order-item {
+                width: 90%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>待取餐訂單</h1>
+
+    {% if orders %}
+        {% for order in orders %}
+            <div class="order-item">
+                <h3>訂單號：{{ order.id }}</h3>
+                <p><strong>餐廳名稱：</strong>{{ order.restaurant_id }}</p>
+                <p><strong>取餐地址：</strong>{{ order.pickup_location }}</p>
+                <p class="order-items"><strong>餐點詳情：</strong>
+                    {% if order.order_items %}
+                        <span>
+                            {% for item in order.order_items %}
+                                {{ item }}&nbsp; <!-- 用 &nbsp; 来控制词与词之间的空格 -->
+                            {% endfor %}
+                        </span>
+                    {% else %}
+                        無餐點詳情
+                    {% endif %}
+                </p>
+
+                {% if order.rider_delivery_status == 'On the Way' %}
+                    <!-- 如果狀態是 '外送中'，顯示已取餐的訊息和不可再點擊的按鈕 -->
+                    <p>外送中</p>
+                {% else %}
+                    <!-- 如果狀態不是 '外送中'，顯示「取餐」按鈕 -->
+                    <a href="{{ url_for('start_delivery', order_id=order.id) }}" class="button">取餐</a>
+                {% endif %}
+
+                {% if order.reviewed == 1 %}
+                    <!-- 如果已評審（reviewed = 1），顯示「完成訂單」按鈕 -->
+                    <a href="{{ url_for('complete_delivery', order_id=order.id) }}" class="button">完成訂單</a>
+                {% endif %}
+            </div>
+        {% endfor %}
+    {% else %}
+        <p class="no-orders">目前沒有需要取餐的訂單。</p>
+    {% endif %}
+    
+    <!-- 返回主頁按钮 -->
+    <a href="{{ url_for('rider_dashboard') }}" class="back-button">返回主頁</a>
+
+</body>
+</html>

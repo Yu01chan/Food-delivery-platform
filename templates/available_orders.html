@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>查看待接單訂單</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+        h1 {
+            font-size: 32px;
+            color: #5d4037;
+            margin-bottom: 30px;
+        }
+        .order-item {
+            background-color: #fff;
+            padding: 20px;
+            margin: 20px auto;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 80%;
+            max-width: 700px;
+            text-align: left;
+        }
+        .order-item h3, .order-item p {
+            margin: 10px 0;
+        }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            color: white;
+            background-color: #007bff;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        .button:hover {
+            background-color: #0056b3;
+        }
+        .back-button {
+            display: inline-block;
+            padding: 10px 20px;
+            margin-top: 20px;
+            color: white;
+            background-color: #28a745;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        .back-button:hover {
+            background-color: #218838;
+        }
+        /* 响应式设计优化 */
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 24px;
+            }
+            .order-item {
+                width: 90%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>待接單訂單</h1>
+
+    {% if orders %}
+        {% for order in orders %}
+            <div class="order-item">
+                <h3>訂單號：{{ order.id }}</h3>
+                <p>餐廳名稱：{{ order.restaurant_id }}</p>  <!-- 修改为餐厅名称 -->
+                <p>訂單總金額：¥{{ '%.2f' % order.customer_total }}</p> <!-- 保留两位小数的金额格式 -->
+                <a href="{{ url_for('pick_order', order_id=order.id) }}" class="button">接單</a>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>目前沒有待接單訂單。</p>
+    {% endif %}
+
+    <!-- 返回主页按钮 -->
+    <a href="{{ url_for('rider_dashboard') }}" class="back-button">返回首頁</a>
+</body>
+</html>

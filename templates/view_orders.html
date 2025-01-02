@@ -122,7 +122,8 @@
 
                 <div class="order-status">
                     <p><strong>餐廳狀態：</strong> {{ order.status }}</p>
-                    <p><strong>外送員狀態：</strong> {{ order.delivery_status or "待派送" }}</p>
+                    <p><strong>外送員狀態：</strong> {{ order.rider_delivery_status if order.rider_delivery_status else "派送中" }}</p>
+
                 </div>
 
                 <h4>餐品：</h4>

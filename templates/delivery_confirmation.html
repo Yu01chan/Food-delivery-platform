@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>送達簽收頁面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+        h1 {
+            font-size: 32px;
+            color: #5d4037;
+            margin-bottom: 30px;
+        }
+        .order-item {
+            background-color: #fff;
+            padding: 20px;
+            margin: 20px auto;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 80%;
+            max-width: 700px;
+            text-align: left;
+        }
+        .order-item h3, .order-item p {
+            margin: 10px 0;
+        }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            color: white;
+            background-color: #dc3545;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        .button:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <h1>送達簽收</h1>
+
+    {% if orders %}
+        {% for order in orders %}
+            <div class="order-item">
+                <h3>訂單號：{{ order.id }}</h3>
+                <p>顧客地址：{{ order.delivery_address }}</p>
+                <p>餐點詳情：{{ order.order_items }}</p>
+                <a href="{{ url_for('confirm_delivery', order_id=order.id) }}" class="button">送達完成</a>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>目前沒有需要送達的訂單。</p>
+    {% endif %}
+</body>
+</html>

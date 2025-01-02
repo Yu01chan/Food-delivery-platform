@@ -125,18 +125,29 @@ def get_orders(restaurant_id=None):
 
 def get_order_details(order_id):
     """獲取訂單詳情"""
+    # 查询订单信息
     order_query = "SELECT * FROM orders WHERE id = %s"
     order = execute_query(order_query, (order_id,), fetchone=True)
 
-    items_query = """
-        SELECT mi.name, mi.price, oi.quantity 
-        FROM order_items oi
-        JOIN menu_items mi ON oi.menu_item_id = mi.id
-        WHERE oi.order_id = %s
-    """
-    order_items = execute_query(items_query, (order_id,), fetchall=True)
+    # 确保订单存在
+    if order:
+        # 解析订单项字段（假设它是以 '&' 分隔的字符串）
+        order_items_str = order['order_items']  # 假设 'order_items' 是一个字符串
+        order_items = []
+        if order_items_str:
+            items = order_items_str.split('&')  # 按照 '&' 分割字符串
+            for item in items:
+                try:
+                    # 尝试解析每个订单项，例如：'炒飯 1'
+                    name, quantity = item.split(' ')
+                    order_items.append({'name': name, 'quantity': int(quantity)})
+                except ValueError:
+                    # 如果解析失败，记录警告信息
+                    print(f"警告：无法解析订单项 '{item}'，格式不正确")
+        return order, order_items
 
-    return order, order_items
+    return None, None  # 如果订单不存在，返回 None
+
 
 def update_order_status(order_id, status, restaurant_id):
     """更新訂單狀態"""
@@ -268,79 +279,116 @@ def submit_order_review(order_id, rating, comment):
         raise
 
 #外送員
-# 訂單管理功能
-def get_available_orders(status=None, rider_id=None):
-    """
-    獲取訂單列表
-    - status: 訂單的狀態
-    - rider_id: 指定外送員的訂單
-    """
-    query = "SELECT * FROM orders WHERE 1=1"
-    params = []
-    
-    if status:
-        query += " AND status = %s"
-        params.append(status)
-    if rider_id:
-        query += " AND rider_id = %s"
-        params.append(rider_id)
-    
-    query += " ORDER BY id ASC"
-    return execute_query(query, params=params, fetchall=True)
-        
-def accept_order(order_id, rider_id):
-    """外送員接單，更新訂單的 rider_id 和狀態"""
-    try:
-        # 打印調試信息，確保傳入的 rider_id 正確
-        print(f"正在檢查外送員的ID: {rider_id}")
-        
-        # 檢查 rider_id 是否存在於 riders 表中，應該根據 user_id 查詢
-        check_rider_query = "SELECT id FROM riders WHERE user_id = %s"
-        rider_exists = execute_query(check_rider_query, (rider_id,))
-        
-        # 打印查詢結果，檢查外送員是否存在
-        print(f"查詢結果: {rider_exists}")
-        
-        if not rider_exists:
-            print(f"錯誤: 外送員 {rider_id} 不存在")
-            return False
+def get_rider_orders(rider_status=None):
+    """根据外送员状态获取订单列表，支持不传递状态参数"""
+    conn = get_db_connection()
+    if conn:
+        cursor = conn.cursor(dictionary=True)
+        try:
+            if rider_status:
+                # 如果传递了 rider_status，则按状态过滤
+                cursor.execute("""
+                    SELECT * FROM orders
+                    WHERE rider_delivery_status = %s
+                """, (rider_status,))
+            else:
+                # 如果没有传递 rider_status，则返回所有 "Not Assigned" 或 "Pending" 状态的订单
+                cursor.execute("""
+                    SELECT * FROM orders
+                    WHERE rider_delivery_status = 'Not Assigned' OR rider_delivery_status = 'Pending'
+                """)
 
-        query = """
+            orders = cursor.fetchall()
+            conn.close()
+            return orders
+        except Exception as e:
+            # 如果执行 SQL 查询时出现问题，捕获异常并打印
+            print(f"Error executing query: {e}")
+            conn.close()
+            return []  # 发生错误时返回空列表
+    else:
+        print("Database connection failed.")
+        return []  # 如果连接失败，返回空列表
+
+
+def is_order_assigned(order_id):
+    """检查订单是否已被外送员接取"""
+    conn = get_db_connection()
+    if conn:
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute("""
+            SELECT rider_id FROM orders
+            WHERE id = %s AND rider_delivery_status != 'Not Assigned'
+        """, (order_id,))
+        order = cursor.fetchone()
+        conn.close()
+        return order is not None  # 如果订单已经被分配，则返回 True
+    return False
+
+
+def assign_order_to_rider(order_id, rider_id):
+    """将订单分配给外送员并更新状态"""
+    conn = get_db_connection()
+    if conn:
+        cursor = conn.cursor()
+        cursor.execute("""
             UPDATE orders
-            SET rider_id = %s, status = 'In Transit'
-            WHERE id = %s AND rider_id IS NULL
-        """
-        affected_rows = execute_query(query, (rider_id, order_id))
+            SET rider_delivery_status = 'Picked Up', rider_id = %s
+            WHERE id = %s AND rider_delivery_status = 'Not Assigned'
+        """, (rider_id, order_id))
+        conn.commit()
+        conn.close()
+        return True  # 订单成功分配
+    return False  # 订单分配失败
+    
+def get_order_by_id_and_rider(order_id, rider_id):
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("""
+        SELECT * FROM orders WHERE id = %s AND rider_id = %s
+    """, (order_id, rider_id))
+    order = cursor.fetchone()
+    conn.close()
+    return order
+    
+def update_order_status_to_on_the_way(order_id, rider_id):
+    conn = get_db_connection()
+    if conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+            UPDATE orders
+            SET rider_delivery_status = 'On the Way'
+            WHERE id = %s AND rider_id = %s
+        """, (order_id, rider_id))
+        conn.commit()
+        conn.close()
         
-        # 打印 affected_rows，確認是否成功更新訂單
-        print(f"受影響的行數: {affected_rows}")
-        
-        if affected_rows > 0:
-            return True
-        else:
-            print(f"錯誤: 訂單 {order_id} 無法被外送員 {rider_id} 接單，可能已經被其他人接單")
-            return False
-    except IntegrityError as e:
-        print(f"接單失敗: {e}")
-        return False
-
-def pickup_order(order_id, rider_id):
-    """標記訂單已取餐"""
-    query = "UPDATE orders SET status = 'Picked Up' WHERE id = %s AND rider_id = %s"
-    execute_query(query, (order_id, rider_id))
-    return True
-
-def complete_order(order_id, rider_id):
-    """標記訂單已完成"""
-    query = """
-        UPDATE orders 
-        SET status = 'Completed', delivered_at = NOW() 
-        WHERE id = %s AND rider_id = %s
-    """
-    execute_query(query, (order_id, rider_id))
-    return True
+# 更新订单状态为 'Delivered'
+def update_order_status_to_delivered(order_id, rider_id):
+    conn = get_db_connection()
+    if conn:
+        cursor = conn.cursor()
+        cursor.execute("""
+            UPDATE orders
+            SET rider_delivery_status = 'Delivered'
+            WHERE id = %s AND rider_id = %s
+        """, (order_id, rider_id))
+        conn.commit()
+        conn.close()
 
 
+def fetch_orders_by_rider(rider_id):
+    """根据外送员ID获取待取餐订单，状态为 'picked up' 或 'On the way'"""
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)  # 使用字典游标以便返回字典格式的结果
+    cursor.execute("""
+        SELECT * FROM orders 
+        WHERE rider_id = %s AND rider_delivery_status IN ('picked up', 'On the way')
+    """, (rider_id,))  # 使用元组来传递参数
+    
+    orders = cursor.fetchall()  # 获取所有符合条件的订单
+    conn.close()
+    return orders
 
 
 

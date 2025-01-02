@@ -3,60 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>外送員儀表板</title>
+    <title>外送員主頁</title>
     <style>
-        .logout-btn {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            padding: 10px 20px;
-            background-color: #5c4033;
-            color: white;
-            font-size: 16px;
-            border-radius: 4px;
-            text-decoration: none;
-            font-weight: bold;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            transition: background-color 0.3s ease;
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #ffefc5, #f5deb3); /* 更柔和的背景 */
+            color: #5c4033;
         }
-
-        .logout-btn:hover {
-            background-color: #3c2f21;
+        header {
+            background: #8b4513;
+            color: #fff;
+            padding: 15px 20px;
+            text-align: center;
+            border-bottom: 4px solid #d2691e;
+        }
+        header h1 {
+            margin: 0;
+            font-size: 26px;
+            color: #fff;  /* 更高對比的文字顏色 */
+        }
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 30px;
+            background: #fff8e1;
+            border-radius: 10px;
+            box-shadow: 0 8px 16px rgba(92, 64, 51, 0.15);
+            text-align: center;
+        }
+        .welcome {
+            font-size: 20px;
+            margin-bottom: 30px;
+            color: #4e4b3a;
+        }
+        nav {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            flex-wrap: wrap; /* 讓按鈕在小屏幕上自動換行 */
+        }
+        nav a {
+            text-decoration: none;
+            padding: 12px 25px;
+            background: #8b4513;
+            color: #fff;
+            border-radius: 6px;
+            font-size: 18px;
+            transition: transform 0.3s ease, background 0.3s ease;
+            display: inline-block;
+        }
+        nav a:hover {
+            background: #5c4033;
+            transform: scale(1.05); /* 滑過時加大效果 */
+        }
+        nav a:active {
+            transform: scale(0.98); /* 點擊時輕微縮小效果 */
         }
     </style>
-    <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
     <header>
-        <h1>歡迎，{{ session['rider_id'] }}</h1>
-        <nav>
-            <a href="{{ url_for('rider_orders') }}">接單頁面</a> <!-- 新增按鈕 -->
-            <a href="{{ url_for('logout') }}" class="logout-btn">登出</a>
-        </nav>
+        <h1>您好，{{ session['user_id'] }}，外送員，歡迎回來！</h1> <!-- 確保文字顏色對比清晰 -->
     </header>
-
-    <main>
-        <h2>進行中的訂單</h2>
-        {% if active_orders %}
-            <ul>
-                {% for order in active_orders %}
-                    <li>
-                        訂單編號: {{ order.id }} - 餐廳: {{ order.restaurant_name }} - 狀態: {{ order.status }}
-                        {% if order.status == "已接單" %}
-                            <form action="{{ url_for('rider_pickup_order', order_id=order.id) }}" method="POST">
-                                <button type="submit">取餐</button>
-                            </form>
-                        {% elif order.status == "取餐中" %}
-                            <form action="{{ url_for('rider_complete_order', order_id=order.id) }}" method="POST">
-                                <button type="submit">完成送達</button>
-                            </form>
-                        {% endif %}
-                    </li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p>目前沒有進行中的訂單。</p>
-        {% endif %}
-    </main>
+    
+    <div class="container">
+        <p class="welcome">您可以選擇以下操作：</p>
+        <nav>
+            <a href="{{ url_for('available_orders') }}">待接訂單</a>
+            <a href="{{ url_for('pick_up_orders') }}">待取餐</a> <!-- 修改此處為正確的 URL -->
+            <a href="{{ url_for('logout') }}">登出</a>
+        </nav>
+    </div>
 </body>
 </html>
