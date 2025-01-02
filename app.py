@@ -539,13 +539,13 @@ def submit_review(order_id):
             flash("請提供評論內容")
             return redirect(url_for('rate_order', order_id=order_id))
 
-        # 验证评分范围
+        # 驗證評分範圍
         if not rating.isdigit() or int(rating) < 1 or int(rating) > 5:
             flash("評分必須是1~5之間的數字")
             return redirect(url_for('rate_order', order_id=order_id))
 
-        # 保存评价到数据库
-        submit_order_review(order_id, rating, comment)
+        # 保存評價到數據庫
+        submit_order_review(order_id, int(rating), comment)
 
         flash("評價提交成功，謝謝您的反饋！")
         return redirect(url_for('view_orders'))

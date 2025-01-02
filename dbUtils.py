@@ -251,16 +251,21 @@ def get_user_orders(user_id):
 
 def submit_order_review(order_id, rating, comment):
     """保存訂單評價並更新訂單狀態"""
-    # 保存評價
-    query = """
-        INSERT INTO order_reviews (order_id, rating, comment, created_at)
-        VALUES (%s, %s, %s, NOW())
-    """
-    execute_query(query, (order_id, rating, comment))
+    try:
+        # 插入評價
+        query = """
+            INSERT INTO order_reviews (order_id, rating, comment, created_at)
+            VALUES (%s, %s, %s, NOW())
+        """
+        execute_query(query, (order_id, rating, comment))
 
-    # 更新訂單的評價狀態
-    update_query = "UPDATE orders SET reviewed = 1 WHERE id = %s"
-    execute_query(update_query, (order_id,))
+        # 更新訂單狀態為已評價
+        update_query = "UPDATE orders SET reviewed = 1 WHERE id = %s"
+        execute_query(update_query, (order_id,))
+
+    except Exception as e:
+        print(f"保存訂單評價失敗: {e}")
+        raise
 
 #外送員
 # 訂單管理功能
