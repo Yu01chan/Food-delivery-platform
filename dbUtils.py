@@ -234,10 +234,22 @@ def Send_order(restaurant_id, user_id, item_id_and_quantity, total_price):
 
 def get_user_orders(user_id):
     """根據用戶 ID 獲取該用戶的所有訂單"""
-    query = "SELECT id, restaurant_id, order_items, customer_total, status, created_at FROM orders WHERE user_id = %s"
+    query = """
+    SELECT 
+        id, 
+        restaurant_id, 
+        order_items, 
+        customer_total, 
+        status, 
+        reviewed, 
+        created_at 
+    FROM orders 
+    WHERE user_id = %s
+    """
     orders = execute_query(query, (user_id,), fetchall=True)
     return orders
 
+<<<<<<< HEAD
 def submit_order_review(order_id, rating, comment):
     """保存訂單評價並更新訂單狀態"""
     # 保存評價
@@ -252,6 +264,9 @@ def submit_order_review(order_id, rating, comment):
     execute_query(update_query, (order_id,))
 
 #外送員
+=======
+
+>>>>>>> 4a77877c84efba106134697e81f1454f1b6adb88
 # 訂單管理功能
 def get_available_orders(status=None, rider_id=None):
     """
