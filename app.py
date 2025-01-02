@@ -392,7 +392,7 @@ def remove_from_cart():
 @login_required
 def sendorder():
     try:
-        # 从 session 获取 user_id
+        # 从 session 獲取 user_id
         user_id = session.get('user_id')
         if not user_id:
             return "使用者未登入或會話已過期", 401
@@ -411,11 +411,8 @@ def sendorder():
                 formatted_order_items.append((item_name.strip(), int(quantity)))  # 去除可能的空格並轉換為元組
             except ValueError:
                 # 如果資料格式不正確，拋出異常
-                raise ValueError(f"订单项格式不正确: {item}")
-
-        # 格式化商品資料，轉換為「item_name*quantity」的字串
-        formatted_order_items_str = "; ".join([f"{item[0]}*{item[1]}" for item in formatted_order_items])
-
+                raise ValueError(f"訂單格式不正確: {item}")
+            
         # 呼叫 Send_order 插入訂單資料，並獲取訂單號
         order_id = Send_order(
             restaurant_id=restaurant_id,
