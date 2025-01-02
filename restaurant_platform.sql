@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- 主機： 127.0.0.1
--- 產生時間： 2025-01-02 10:56:47
+-- 產生時間： 2025-01-02 15:25:00
 -- 伺服器版本： 10.4.32-MariaDB
 -- PHP 版本： 8.2.12
 
@@ -73,7 +73,7 @@ INSERT INTO `orders` (`id`, `user_id`, `restaurant_id`, `order_items`, `customer
 (14, 'gg', 'kj', '炒飯&1', 65, 'Completed', '2025-01-02 03:13:16', 1),
 (15, 'gg', 'TR', '鰻魚飯(大)&1', 250, 'Pending', '2025-01-02 03:21:33', 0),
 (16, 'gg', 'kj', '炒飯&1', 65, 'Completed', '2025-01-02 04:11:03', 0),
-(17, 'gg', 'kj', '炒飯&1', 65, 'Completed', '2025-01-02 09:37:22', 0);
+(17, 'gg', 'kj', '炒飯&1', 65, 'Completed', '2025-01-02 09:37:22', 1);
 
 -- --------------------------------------------------------
 
@@ -99,7 +99,7 @@ CREATE TABLE `order_reviews` (
   `id` int(11) NOT NULL,
   `order_id` int(11) NOT NULL,
   `rating` int(11) NOT NULL,
-  `comment` text NOT NULL,
+  `comment` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
@@ -109,7 +109,8 @@ CREATE TABLE `order_reviews` (
 
 INSERT INTO `order_reviews` (`id`, `order_id`, `rating`, `comment`, `created_at`) VALUES
 (1, 14, 3, '1', '2025-01-02 04:03:43'),
-(2, 14, 4, '11', '2025-01-02 09:55:48');
+(2, 14, 4, '11', '2025-01-02 09:55:48'),
+(4, 17, 5, '哈哈哈哈', '2025-01-02 14:24:40');
 
 -- --------------------------------------------------------
 
@@ -199,7 +200,7 @@ ALTER TABLE `order_items`
 -- 使用資料表自動遞增(AUTO_INCREMENT) `order_reviews`
 --
 ALTER TABLE `order_reviews`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- 使用資料表自動遞增(AUTO_INCREMENT) `users`
