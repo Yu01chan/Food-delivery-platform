@@ -189,23 +189,6 @@ def checkout_items(item_id):
     params = (item_id,)
     return execute_query(query, params, fetchone=True)
 
-def insert_into_db(query, params):
-    """通用插入数据到数据库"""
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    try:
-        print(f"Executing query: {query} with params: {params}")  # 打印查询和参数
-        cursor.execute(query, params)
-        conn.commit()
-        return cursor.rowcount > 0  # 返回是否插入成功
-    except Exception as e:
-        print(f"数据库操作失败: {e}")  # 打印错误信息
-        conn.rollback()
-        return False
-    finally:
-        cursor.close()
-        conn.close()
-
 def Send_order(restaurant_id, user_id, item_id_and_quantity, total_price):
     """插入订单数据到 orders 表"""
     try:
@@ -253,6 +236,81 @@ def get_user_orders(user_id):
     query = "SELECT * FROM orders WHERE user_id = %s"
     orders = execute_query(query, (user_id,), fetchall=True)
     return orders
+
+# 訂單管理功能
+
+def get_available_orders(status=None, rider_id=None):
+    """
+    獲取訂單列表
+    - status: 訂單的狀態
+    - rider_id: 指定外送員的訂單
+    """
+    query = "SELECT * FROM orders WHERE 1=1"
+    params = []
+    
+    if status:
+        query += " AND status = %s"
+        params.append(status)
+    if rider_id:
+        query += " AND rider_id = %s"
+        params.append(rider_id)
+    
+    query += " ORDER BY id ASC"
+    return execute_query(query, params=params, fetchall=True)
+        
+def accept_order(order_id, rider_id):
+    """外送員接單，更新訂單的 rider_id 和狀態"""
+    try:
+        # 打印調試信息，確保傳入的 rider_id 正確
+        print(f"正在檢查外送員的ID: {rider_id}")
+        
+        # 檢查 rider_id 是否存在於 riders 表中，應該根據 user_id 查詢
+        check_rider_query = "SELECT id FROM riders WHERE user_id = %s"
+        rider_exists = execute_query(check_rider_query, (rider_id,))
+        
+        # 打印查詢結果，檢查外送員是否存在
+        print(f"查詢結果: {rider_exists}")
+        
+        if not rider_exists:
+            print(f"錯誤: 外送員 {rider_id} 不存在")
+            return False
+
+        query = """
+            UPDATE orders
+            SET rider_id = %s, status = 'In Transit'
+            WHERE id = %s AND rider_id IS NULL
+        """
+        affected_rows = execute_query(query, (rider_id, order_id))
+        
+        # 打印 affected_rows，確認是否成功更新訂單
+        print(f"受影響的行數: {affected_rows}")
+        
+        if affected_rows > 0:
+            return True
+        else:
+            print(f"錯誤: 訂單 {order_id} 無法被外送員 {rider_id} 接單，可能已經被其他人接單")
+            return False
+    except IntegrityError as e:
+        print(f"接單失敗: {e}")
+        return False
+
+
+    
+def pickup_order(order_id, rider_id):
+    """標記訂單已取餐"""
+    query = "UPDATE orders SET status = 'Picked Up' WHERE id = %s AND rider_id = %s"
+    execute_query(query, (order_id, rider_id))
+    return True
+
+def complete_order(order_id, rider_id):
+    """標記訂單已完成"""
+    query = """
+        UPDATE orders 
+        SET status = 'Completed', delivered_at = NOW() 
+        WHERE id = %s AND rider_id = %s
+    """
+    execute_query(query, (order_id, rider_id))
+    return True
 
 
 

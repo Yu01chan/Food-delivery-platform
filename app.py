@@ -14,8 +14,8 @@ from dbUtils import (
     edit_menu_item, delete_menu_item, get_orders, get_order_details,
     update_order_status, notify_rider_to_pickup,
     get_menu_items_customer_data,get_menu_restaurant_data,
-    cartmenu_items,checkout_items,execute_query,Send_order,insert_into_db
-)
+    cartmenu_items,checkout_items,execute_query,Send_order,get_available_orders,get_available_orders,accept_order,pickup_order,complete_order
+    )
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '123TyU%^&'
@@ -96,6 +96,8 @@ def login():
                 return redirect(url_for('index'))  # 如果是餐廳用戶，跳轉到 /index
             elif user['role'] == 'customer':
                 return redirect(url_for('customermenu'))  # 如果是顧客，跳轉到 /customermenu
+            elif user['role'] == 'delivery':
+                return redirect(url_for('view_orders'))  # 如果是外送員，跳轉到 /vieworders
         else:
             flash("登录失败，请检查您的账户信息")
     return render_template("login.html")
@@ -434,16 +436,11 @@ def sendorder():
     except Exception as e:
         print(f"发送订单失败: {e}")
         return "订单提交失败，请稍后再试", 500
-
-
-
-    
+ 
 @app.route('/comment')
 @login_required
 def comment():
     return render_template('comment.html')
-
-
 
 @app.route('/vieworders')
 @login_required
@@ -472,3 +469,49 @@ def view_orders():
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+# 儀表板頁面
+@app.route("/rider/dashboard")
+@login_required
+def rider_dashboard():
+    active_orders = get_available_orders(status="active", rider_id=session['rider_id'])
+    return render_template("rider_dashboard.html", active_orders=active_orders)
+
+# 接單頁面
+@app.route("/rider/orders")
+@login_required
+def rider_orders():
+    available_orders = get_available_orders()  # 獲取所有尚未被接單的訂單
+    return render_template("rider_orders.html", orders=available_orders)
+
+@app.route("/rider/accept_order/<int:order_id>", methods=["POST"])
+@login_required
+def rider_accept_order(order_id):
+    rider_id = session.get('rider_id')
+    if accept_order(order_id, rider_id):
+        flash("成功接單！")
+    else:
+        flash("接單失敗！")
+    return redirect(url_for('rider_orders'))  # 接單後回到接單頁面
+
+# 訂單取餐
+@app.route("/rider/pickup_order/<int:order_id>", methods=["POST"])
+@login_required
+def rider_pickup_order(order_id):
+    rider_id = session.get('rider_id')
+    if pickup_order(order_id, rider_id):
+        flash("已取餐，請前往送達！")
+    else:
+        flash("操作失敗！")
+    return redirect(url_for('rider_dashboard'))
+
+# 訂單送達
+@app.route("/rider/complete_order/<int:order_id>", methods=["POST"])
+@login_required
+def rider_complete_order(order_id):
+    rider_id = session.get('rider_id')
+    if complete_order(order_id, rider_id):
+        flash("訂單已完成！")
+    else:
+        flash("完成訂單失敗！")
+    return redirect(url_for('rider_dashboard'))

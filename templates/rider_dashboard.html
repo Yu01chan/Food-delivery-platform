@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>外送員儀表板</title>
+    <style>
+        .logout-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background-color: #5c4033;
+            color: white;
+            font-size: 16px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: bold;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.3s ease;
+        }
+
+        .logout-btn:hover {
+            background-color: #3c2f21;
+        }
+    </style>
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <header>
+        <h1>歡迎，{{ session['rider_id'] }}</h1>
+        <nav>
+            <a href="{{ url_for('rider_orders') }}">接單頁面</a> <!-- 新增按鈕 -->
+            <a href="{{ url_for('logout') }}" class="logout-btn">登出</a>
+        </nav>
+    </header>
+
+    <main>
+        <h2>進行中的訂單</h2>
+        {% if active_orders %}
+            <ul>
+                {% for order in active_orders %}
+                    <li>
+                        訂單編號: {{ order.id }} - 餐廳: {{ order.restaurant_name }} - 狀態: {{ order.status }}
+                        {% if order.status == "已接單" %}
+                            <form action="{{ url_for('rider_pickup_order', order_id=order.id) }}" method="POST">
+                                <button type="submit">取餐</button>
+                            </form>
+                        {% elif order.status == "取餐中" %}
+                            <form action="{{ url_for('rider_complete_order', order_id=order.id) }}" method="POST">
+                                <button type="submit">完成送達</button>
+                            </form>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>目前沒有進行中的訂單。</p>
+        {% endif %}
+    </main>
+</body>
+</html>
