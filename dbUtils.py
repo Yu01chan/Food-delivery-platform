@@ -314,11 +314,26 @@ def submit_order_review(order_id, rating, comment):
     """保存訂單評價並更新訂單狀態"""
     # 保存評價
     query = """
-        INSERT INTO reviews (order_id, rating, comment, created_at)
+        INSERT INTO order_reviews (order_id, rating, comment, created_at)
         VALUES (%s, %s, %s, NOW())
     """
     execute_query(query, (order_id, rating, comment))
 
+<<<<<<< HEAD
     # 更新訂單的評價狀態
     update_query = "UPDATE orders SET reviewed = TRUE WHERE id = %s"
     execute_query(update_query, (order_id,))
+=======
+    # 更新订单的评价状态
+    update_query = "UPDATE orders SET reviewed = 1 WHERE id = %s"
+    execute_query(update_query, (order_id,))
+
+
+
+
+
+
+
+
+
+>>>>>>> c0b62847364640e4277145cbf9d1a8909c822238

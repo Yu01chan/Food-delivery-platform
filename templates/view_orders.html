@@ -136,7 +136,7 @@
 
                 <!-- 只有訂單完成時才顯示評價按鈕 -->
                 {% if order.status == 'Completed' %}
-                    {% if not order.reviewed %}
+                    {% if order.reviewed == 0 %}
                         <form action="{{ url_for('submit_review', order_id=order.id) }}" method="POST">
                             <button type="submit" class="button">提交評價</button>
                         </form>
