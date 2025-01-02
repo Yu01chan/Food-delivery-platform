@@ -319,12 +319,7 @@ def submit_order_review(order_id, rating, comment):
     """
     execute_query(query, (order_id, rating, comment))
 
-<<<<<<< HEAD
     # 更新訂單的評價狀態
-    update_query = "UPDATE orders SET reviewed = TRUE WHERE id = %s"
-    execute_query(update_query, (order_id,))
-=======
-    # 更新订单的评价状态
     update_query = "UPDATE orders SET reviewed = 1 WHERE id = %s"
     execute_query(update_query, (order_id,))
 
@@ -336,4 +331,3 @@ def submit_order_review(order_id, rating, comment):
 
 
 
->>>>>>> c0b62847364640e4277145cbf9d1a8909c822238
