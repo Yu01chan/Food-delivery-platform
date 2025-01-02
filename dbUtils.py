@@ -4,7 +4,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from collections import defaultdict  # 載入 defaultdict
 
 def get_db_connection():
-    """建立並返回數據庫連接"""
+    """建立並返回資料庫連接"""
     try:
         connection = mysql.connector.connect(
             user="root",
@@ -16,11 +16,11 @@ def get_db_connection():
         if connection.is_connected():
             return connection
     except Error as e:
-        print(f"數據庫連接失敗: {e}")
+        print(f"資料庫連接失敗: {e}")
         raise
 
 def execute_query(query, params=None, fetchone=False, fetchall=False):
-    """輔助函數，用於執行數據庫查詢"""
+    """輔助函數，用於執行資料庫查詢"""
     conn = None
     cursor = None
     try:
@@ -29,20 +29,20 @@ def execute_query(query, params=None, fetchone=False, fetchall=False):
         cursor.execute(query, params or ())
         result = None
 
-        # 根据需要提取单条或多条记录
+        # 根據需要提取單條或多條記錄
         if fetchone:
             result = cursor.fetchone()
         elif fetchall:
             result = cursor.fetchall()
         
-        # 提交事务
+        # 提交事務
         conn.commit()
         return result
     except Error as e:
         print(f"執行查詢時發生錯誤: {e}")
         raise
     finally:
-        # 确保游标和连接关闭
+        # 確保游標和連接關閉
         if cursor:
             cursor.close()
         if conn:
@@ -149,7 +149,7 @@ def update_order_status(order_id, status, restaurant_id):
         execute_query(query, (status, order_id, restaurant_id))
         return True
     except Exception as e:
-        print(f"更新订单状态失败: {e}")
+        print(f"更新訂單狀態失敗: {e}")
         return False
 
 def notify_rider_to_pickup(order_id, restaurant_id):
@@ -168,17 +168,17 @@ def get_menu_items_customer_data():
     # 根據 restaurant_id 將菜單項目分組
     grouped_menu_items = defaultdict(list)
     for item in menu_items:
-        grouped_menu_items[item['restaurant_id']].append(item)# 確保 restaurant_id 為字串
+        grouped_menu_items[item['restaurant_id']].append(item)  # 確保 restaurant_id 為字串
     
     return grouped_menu_items
 
 def get_menu_restaurant_data(restaurant_id):
-    """ 获取指定餐厅的菜单项 """
+    """ 獲取指定餐廳的菜單項 """
     query = "SELECT * FROM menu_items WHERE restaurant_id = %s"
     params = (restaurant_id,)
     return execute_query(query, params, fetchall=True)
 
-# 根据商品ID获取菜单项
+# 根據商品ID獲取菜單項
 def cartmenu_items(id):
     query = "SELECT id, name, price, restaurant_id FROM menu_items WHERE id = %s"
     params = (id,)
@@ -190,12 +190,12 @@ def checkout_items(item_id):
     return execute_query(query, params, fetchone=True)
 
 def Send_order(restaurant_id, user_id, item_id_and_quantity, total_price):
-    """插入订单数据到 orders 表"""
+    """插入訂單資料到 orders 表"""
     try:
-        # 格式化 order_items，将 item_id 和 quantity 合并
+        # 格式化 order_items，將 item_id 和 quantity 合併
         formatted_order_items = "; ".join([f"{item_id}&{quantity}" for item_id, quantity in item_id_and_quantity])
 
-        # SQL 插入语句
+        # SQL 插入語句
         query = """
             INSERT INTO orders (
                 restaurant_id, user_id, order_items, customer_total
@@ -204,22 +204,22 @@ def Send_order(restaurant_id, user_id, item_id_and_quantity, total_price):
         params = (
             restaurant_id, 
             user_id,
-            formatted_order_items,  # 格式化后的 item_id&quantity
+            formatted_order_items,  # 格式化後的 item_id&quantity
             total_price
         )
 
-        # 使用 mysql.connector 来进行数据库连接和执行
+        # 使用 mysql.connector 來進行資料庫連接和執行
         connection = mysql.connector.connect(host='localhost', user='root', password='', db='restaurant_platform')
         cursor = connection.cursor()
 
-        # 执行插入操作
+        # 執行插入操作
         cursor.execute(query, params)
         connection.commit()
 
-        # 获取插入数据的ID（自动生成的order_id）
+        # 獲取插入資料的ID（自動生成的 order_id）
         order_id = cursor.lastrowid
 
-        # 关闭连接
+        # 關閉連接
         cursor.close()
         connection.close()
 
@@ -228,17 +228,16 @@ def Send_order(restaurant_id, user_id, item_id_and_quantity, total_price):
         else:
             return None
     except Exception as e:
-        print(f"插入订单失败: {e}")
+        print(f"插入訂單失敗: {e}")
         return None
 
 def get_user_orders(user_id):
-    """根据用户 ID 获取该用户的所有订单"""
+    """根據用戶 ID 獲取該用戶的所有訂單"""
     query = "SELECT id, restaurant_id, order_items, customer_total, status, created_at FROM orders WHERE user_id = %s"
     orders = execute_query(query, (user_id,), fetchall=True)
     return orders
 
 # 訂單管理功能
-
 def get_available_orders(status=None, rider_id=None):
     """
     獲取訂單列表
@@ -294,8 +293,6 @@ def accept_order(order_id, rider_id):
         print(f"接單失敗: {e}")
         return False
 
-
-    
 def pickup_order(order_id, rider_id):
     """標記訂單已取餐"""
     query = "UPDATE orders SET status = 'Picked Up' WHERE id = %s AND rider_id = %s"
@@ -314,22 +311,14 @@ def complete_order(order_id, rider_id):
 
 
 def submit_order_review(order_id, rating, comment):
-    """保存订单评价并更新订单状态"""
-    # 保存评价
+    """保存訂單評價並更新訂單狀態"""
+    # 保存評價
     query = """
         INSERT INTO reviews (order_id, rating, comment, created_at)
         VALUES (%s, %s, %s, NOW())
     """
     execute_query(query, (order_id, rating, comment))
 
-    # 更新订单的评价状态
+    # 更新訂單的評價狀態
     update_query = "UPDATE orders SET reviewed = TRUE WHERE id = %s"
     execute_query(update_query, (order_id,))
-
-
-
-
-
-
-
-

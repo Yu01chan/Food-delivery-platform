@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>添加菜单项</title>
+    <title>新增菜單項目</title>
     <style>
-         /* 全局样式 */
+        /* 全局樣式 */
         * {
             margin: 0;
             padding: 0;
@@ -27,7 +27,7 @@
             font-weight: bold;
         }
 
-        /* 表单容器 */
+        /* 表單容器 */
         form {
             max-width: 600px;
             margin: 0 auto;
@@ -38,7 +38,7 @@
             box-sizing: border-box;
         }
 
-        /* 输入框样式 */
+        /* 輸入框樣式 */
         label {
             font-size: 1rem;
             color: #333;
@@ -73,7 +73,7 @@
             min-height: 100px;
         }
 
-        /* 按钮样式 */
+        /* 按鈕樣式 */
         button {
             background-color: #6f4f1f;
             color: white;
@@ -94,7 +94,7 @@
             background-color: #a85c3b;
         }
 
-        /* 响应式设计 */
+        /* 響應式設計 */
         @media (max-width: 768px) {
             body {
                 padding: 20px;
@@ -110,7 +110,7 @@
             }
         }
 
-        /* 文件上传控件 */
+        /* 文件上傳控件 */
         input[type="file"] {
             background-color: #f9f9f9;
             padding: 10px;
@@ -124,21 +124,19 @@
     </style>
 </head>
 <body>
-    <h1>添加菜单项</h1>
-
-   
+    <h1>新增菜單項目</h1>
 
     <form method="POST" enctype="multipart/form-data">
-        <label for="name">名称</label>
-        <input type="text" id="name" name="name" placeholder="请输入菜单项名称" required><br>
+        <label for="name">名稱</label>
+        <input type="text" id="name" name="name" placeholder="請輸入菜單項目名稱" required><br>
         
         <label for="description">描述</label>
-        <textarea id="description" name="description" placeholder="请输入菜单项描述" required></textarea><br>
+        <textarea id="description" name="description" placeholder="請輸入菜單項目描述" required></textarea><br>
         
-        <label for="price">价格</label>
-        <input type="text" id="price" name="price" placeholder="请输入菜单项价格" required><br>
+        <label for="price">價格</label>
+        <input type="text" id="price" name="price" placeholder="請輸入菜單項目價格" required><br>
         
-        <label for="image">上传图片</label>
+        <label for="image">上傳圖片</label>
         <input type="file" name="image" id="image" required><br>
         
         <button type="submit">提交</button>

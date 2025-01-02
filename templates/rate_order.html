@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-Hans">
+<html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>订单评价</title>
+    <title>訂單評價</title>
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -63,16 +63,16 @@
     </style>
 </head>
 <body>
-    <h1>订单评价</h1>
+    <h1>訂單評價</h1>
 
     <div class="order-item">
-        <h3>订单号：{{ order.id }}</h3>
-        <p>餐厅 ID：{{ order.restaurant_id }}</p>
-        <p>总金额：¥{{ order.customer_total }}</p>
+        <h3>訂單號：{{ order.id }}</h3>
+        <p>餐廳 ID：{{ order.restaurant_id }}</p>
+        <p>總金額：¥{{ order.customer_total }}</p>
 
         <form action="{{ url_for('submit_review', order_id=order.id) }}" method="POST">
             <div class="rating">
-                <label for="rating">评价您的订单：</label><br>
+                <label for="rating">評價您的訂單：</label><br>
                 <input type="radio" name="rating" value="1" required> 1 星
                 <input type="radio" name="rating" value="2"> 2 星
                 <input type="radio" name="rating" value="3"> 3 星
@@ -80,12 +80,13 @@
                 <input type="radio" name="rating" value="5"> 5 星
             </div>
             <div>
-                <textarea name="comment" placeholder="您的评价" rows="4" cols="50" required></textarea>
+                <textarea name="comment" placeholder="您的評價" rows="4" cols="50" required></textarea>
             </div>
-            <button type="submit" class="button">提交评价</button>
+            <button type="submit" class="button">提交評價</button>
         </form>
     </div>
 
-    <a href="{{ url_for('view_orders') }}" class="button">返回订单</a>
+    <a href="{{ url_for('view_orders') }}" class="button">返回訂單</a>
 </body>
 </html>
+

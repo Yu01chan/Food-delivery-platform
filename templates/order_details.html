@@ -29,7 +29,7 @@
         h1 {
             font-size: 28px;
             text-align: center;
-            color: #8B5A2B; /* 黄褐色 */
+            color: #8B5A2B; /* 黃褐色 */
             margin-bottom: 20px;
         }
 
@@ -97,7 +97,7 @@
         }
 
         .update-btn {
-            background-color: #8B5A2B; /* 黄褐色 */
+            background-color: #8B5A2B; /* 黃褐色 */
             color: white;
             padding: 12px 20px;
             font-size: 18px;
@@ -110,11 +110,11 @@
         }
 
         .update-btn:hover {
-            background-color: #6B3F2D; /* 更深的黄褐色 */
+            background-color: #6B3F2D; /* 更深的黃褐色 */
         }
 
         .back-btn {
-            background-color: #8B5A2B; /* 黄褐色 */
+            background-color: #8B5A2B; /* 黃褐色 */
             color: white;
             padding: 12px 20px;
             font-size: 18px;
@@ -127,7 +127,7 @@
         }
 
         .back-btn:hover {
-            background-color: #6B3F2D; /* 更深的黄褐色 */
+            background-color: #6B3F2D; /* 更深的黃褐色 */
         }
 
         .back-btn:active {
@@ -137,7 +137,7 @@
 </head>
 <body>
     <div class="order-details-container">
-        <!-- 返回按钮 -->
+        <!-- 返回按鈕 -->
         <a href="{{ url_for('orders') }}" class="back-btn">返回訂單列表</a>
 
         <h1>訂單詳情</h1>
@@ -154,7 +154,7 @@
             {% endfor %}
         </ul>
 
-        <!-- 状态更新表单 -->
+        <!-- 狀態更新表單 -->
         <form method="POST" action="{{ url_for('update_order_status_route', order_id=order['id']) }}" class="status-update-form">
             <label for="status">更新狀態:</label>
             <select id="status" name="status" required>
@@ -167,3 +167,4 @@
     </div>
 </body>
 </html>
+

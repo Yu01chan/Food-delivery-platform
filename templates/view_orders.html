@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-Hans">
+<html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>查看订单状态</title>
+    <title>查看訂單狀態</title>
     <style>
         body {
             font-family: 'Arial', sans-serif;
@@ -105,24 +105,24 @@
     </style>
 </head>
 <body>
-    <h1>您的订单状态</h1>
+    <h1>您的訂單狀態</h1>
 
     {% if orders %}
         {% for order in orders %}
             <div class="order-item">
                 <div class="order-header">
                     <div>
-                        <h3>订单号：{{ order.id }}</h3>
-                        <p>餐厅 ID：{{ order.restaurant_id }}</p>
+                        <h3>訂單號：{{ order.id }}</h3>
+                        <p>餐廳 ID：{{ order.restaurant_id }}</p>
                     </div>
                     <div>
-                        <p><strong>总金额：</strong>¥{{ order.customer_total }}</p>
+                        <p><strong>總金額：</strong>¥{{ order.customer_total }}</p>
                     </div>
                 </div>
 
                 <div class="order-status">
-                    <p><strong>餐厅状态：</strong> {{ order.status }}</p>
-                    <p><strong>骑手状态：</strong> {{ order.delivery_status or "待派送" }}</p>
+                    <p><strong>餐廳狀態：</strong> {{ order.status }}</p>
+                    <p><strong>外送員狀態：</strong> {{ order.delivery_status or "待派送" }}</p>
                 </div>
 
                 <h4>餐品：</h4>
@@ -132,26 +132,26 @@
                     {% endfor %}
                 </ul>
 
-                <p>订单创建时间：{{ order.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+                <p>訂單創建時間：{{ order.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
 
-                <!-- 只有订单完成时才显示评价按钮 -->
+                <!-- 只有訂單完成時才顯示評價按鈕 -->
                 {% if order.status == 'Completed' %}
                     {% if not order.reviewed %}
                         <form action="{{ url_for('submit_review', order_id=order.id) }}" method="POST">
-                            <button type="submit" class="button">提交评价</button>
+                            <button type="submit" class="button">提交評價</button>
                         </form>
                     {% else %}
-                        <p>感谢您的评价！</p>
+                        <p>感謝您的評價！</p>
                     {% endif %}
                 {% else %}
-                    <p><span class="status status-processing">订单尚未完成，无法评价。</span></p>
+                    <p><span class="status status-processing">訂單尚未完成，無法評價。</span></p>
                 {% endif %}
             </div>
         {% endfor %}
     {% else %}
-        <p class="no-orders">您当前没有任何订单。</p>
+        <p class="no-orders">您當前沒有任何訂單。</p>
     {% endif %}
 
-    <a href="{{ url_for('customermenu') }}" class="button">返回首页</a>
+    <a href="{{ url_for('customermenu') }}" class="button">返回首頁</a>
 </body>
 </html>

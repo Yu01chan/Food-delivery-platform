@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-Hans">
+<html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>加入購物車详情</title>
+    <title>加入購物車詳情</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -75,7 +75,7 @@
             font-weight: bold;
         }
 
-        /* 加入购物车按钮 */
+        /* 加入購物車按鈕 */
         .add-to-cart-btn {
             background-color: red;
             color: white;
@@ -90,7 +90,7 @@
             background-color: #cc0000;
         }
 
-        /* 返回按钮 */
+        /* 返回按鈕 */
         .back-btn {
             background-color: #3c2f21;
             color: white;
@@ -106,91 +106,89 @@
             background-color: #2c1d15;
         }
 
-        /* 显示购物车数量的样式 */
+        /* 顯示購物車數量的樣式 */
         .cart-info {
             margin-top: 20px;
             font-size: 18px;
             color: #555;
         }
 
-       /* 查看购物车按钮 */
-.view-cart-btn {
-    background-color: #40d822; /* 深橘色 */
-    color: white;
-    padding: 10px 20px;
-    border-radius: 5px;
-    font-size: 16px;
-    cursor: pointer;
-    border: none;
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    text-decoration: none; /* 去掉下划线 */
-}
+        /* 查看購物車按鈕 */
+        .view-cart-btn {
+            background-color: #40d822; /* 綠色 */
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            text-decoration: none; /* 去掉下劃線 */
+        }
 
-.view-cart-btn:hover {
-    background-color: #d85f00; /* 深橘色 hover 效果 */
-}
+        .view-cart-btn:hover {
+            background-color: #28a745; /* 綠色 hover 效果 */
+        }
 
-.cart-info {
-    font-size: 16px;
-    font-weight: bold;
-    background-color: green;
-    color: white;
-    padding: 10px;
-    border-radius: 5px;
-    text-align: center;
-    margin: 10px 0;
-}
-
-
+        .cart-info {
+            font-size: 16px;
+            font-weight: bold;
+            background-color: green;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            margin: 10px 0;
+        }
     </style>
 </head>
 <body>
     <header>
-        <h1>购物车详情</h1>
+        <h1>購物車詳情</h1>
     </header>
 
     <main>
-        <!-- 返回按钮 -->
+        <!-- 返回按鈕 -->
         <a href="{{ url_for('get_menu_restaurant', restaurant_id=item['restaurant_id']) }}" class="back-btn">返回菜單</a>
 
-        <!-- 显示购物车数量/提示信息 -->
-        <div id="cart-info" class="cart-info" style="display: none; color: white; background-color: green; padding: 10px; border-radius: 5px; text-align: center; margin: 10px 0;"></div>
+        <!-- 顯示購物車數量/提示信息 -->
+        <div id="cart-info" class="cart-info" style="display: none;"> </div>
 
-        <!-- 商品详情 -->
+        <!-- 商品詳情 -->
         <div class="item-details">
             <h3>{{ item['name'] }}</h3>
-            <p class="price">价格: ¥{{ item['price'] }}</p>
+            <p class="price">價格: ¥{{ item['price'] }}</p>
             
-            <!-- 数量选择器 -->
+            <!-- 數量選擇器 -->
             <div class="quantity-selector">
                 <button type="button" id="decrease">-</button>
                 <span id="quantity">1</span>
                 <button type="button" id="increase">+</button>
             </div>
 
-            <!-- 表单 - 加入购物车 -->
+            <!-- 表單 - 加入購物車 -->
             <form action="/add_to_cart" method="POST" id="add-to-cart-form">
                 <input type="hidden" name="item_id" value="{{ item['id'] }}">
-                <input type="hidden" name="quantity" id="quantity-input" value="1"> <!-- 默认数量 -->
-                <button type="submit" class="add-to-cart-btn">加入购物车</button>
+                <input type="hidden" name="quantity" id="quantity-input" value="1"> <!-- 預設數量 -->
+                <button type="submit" class="add-to-cart-btn">加入購物車</button>
             </form>
         </div>
     </main>
 
-    <!-- 查看购物车按钮 -->
-    <a href="/add_to_cart" class="view-cart-btn">查看购物车</a>
+    <!-- 查看購物車按鈕 -->
+    <a href="/add_to_cart" class="view-cart-btn">查看購物車</a>
 
     <script>
-        // 获取元素
+        // 獲取元素
         const quantitySpan = document.getElementById('quantity');
         const quantityInput = document.getElementById('quantity-input');
         const decreaseButton = document.getElementById('decrease');
         const increaseButton = document.getElementById('increase');
         const cartInfo = document.getElementById('cart-info');
 
-        // 减少数量
+        // 減少數量
         decreaseButton.addEventListener('click', () => {
             let quantity = parseInt(quantitySpan.textContent, 10);
             if (quantity > 1) {
@@ -200,7 +198,7 @@
             }
         });
 
-        // 增加数量
+        // 增加數量
         increaseButton.addEventListener('click', () => {
             let quantity = parseInt(quantitySpan.textContent, 10);
             quantity += 1;
@@ -208,30 +206,30 @@
             quantityInput.value = quantity;
         });
 
-        // 表单提交事件
+        // 表單提交事件
         document.getElementById('add-to-cart-form').addEventListener('submit', function (event) {
-            event.preventDefault(); // 防止默认提交
+            event.preventDefault(); // 防止默認提交
 
-            const formData = new FormData(this); // 获取表单数据
+            const formData = new FormData(this); // 獲取表單數據
 
-            // 使用 fetch 将数据发送到服务器
+            // 使用 fetch 發送數據到服務器
             fetch('/add_to_cart', {
                 method: 'POST',
                 body: formData
             })
-            .then(response => response.json()) // 解析 JSON 响应
+            .then(response => response.json()) // 解析 JSON 響應
             .then(data => {
                 if (data.success) {
-                    cartInfo.textContent = "此商品已加入购物车";
-                    cartInfo.style.display = 'block'; // 显示提示信息
+                    cartInfo.textContent = "此商品已加入購物車";
+                    cartInfo.style.display = 'block'; // 顯示提示信息
                     cartInfo.style.backgroundColor = 'green';
 
-                    // 显示一段时间后隐藏
+                    // 顯示一段時間後隱藏
                     setTimeout(() => {
                         cartInfo.style.display = 'none';
                     }, 3000);
                 } else {
-                    cartInfo.textContent = data.message || '添加失败！';
+                    cartInfo.textContent = data.message || '添加失敗！';
                     cartInfo.style.display = 'block';
                     cartInfo.style.backgroundColor = 'red';
 
@@ -241,8 +239,8 @@
                 }
             })
             .catch(error => {
-                console.error('发生错误:', error);
-                cartInfo.textContent = '网络错误，请稍后重试！';
+                console.error('發生錯誤:', error);
+                cartInfo.textContent = '網絡錯誤，請稍後重試！';
                 cartInfo.style.display = 'block';
                 cartInfo.style.backgroundColor = 'red';
 
@@ -253,9 +251,8 @@
         });
     </script>    
 </body>
-
-
 </html>
+
 
 
 

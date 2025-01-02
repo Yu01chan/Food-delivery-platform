@@ -19,13 +19,13 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = '123TyU%^&'
 app.config['UPLOAD_FOLDER'] = 'static/images'
 app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif'}
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 限制最大上传文件为 16MB
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 限制最大上傳文件為 16MB
 
 
 
 # Utility Functions
 def allowed_file(filename):
-    # 使用 MIME 类型确保文件的安全性
+    # 使用 MIME 類型確保文件的安全性
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
 
 def save_uploaded_file(file):
@@ -37,7 +37,7 @@ def save_uploaded_file(file):
             file.save(file_path)
             return file_path
         except Exception as e:
-            flash(f"文件上传失败: {str(e)}")
+            flash(f"文件上傳失敗: {str(e)}")
             return None
     flash("不支持的文件格式或文件太大")
     return None
@@ -56,7 +56,7 @@ def login_required(f):
     @wraps(f)
     def wrapper(*args, **kwargs):
         if 'user_id' not in session:
-            flash("请先登录")
+            flash("請先登入")
             return redirect(url_for('login'))
         return f(*args, **kwargs)
     return wrapper
@@ -91,7 +91,7 @@ def login():
             elif user['role'] == 'delivery':
                 return redirect(url_for('view_orders'))  # 如果是外送員，跳轉到 /vieworders
         else:
-            flash("登录失败，请检查您的账户信息")
+            flash("登入失敗，請檢察您的帳密")
     return render_template("login.html")
 
 @app.route("/")
@@ -121,19 +121,19 @@ def add_menu_item_route():
         price = request.form['price']
         image = request.files['image']
 
-        # 上传图片并保存路径
+        # 上傳圖片並確保路徑
         image_path = save_uploaded_file(image)
         if not image_path:
-            flash("图片上传失败，请重新尝试！")
+            flash("圖片上傳失敗，請重新嘗試！")
             return redirect(url_for("add_menu_item_route"))
 
-        # 保存菜单项到数据库
+        # 保存菜單項到數據庫
         restaurant_id = session.get('user_id')
         if add_menu_item(name, description, price, restaurant_id, image_path):
-            flash("菜单项添加成功！")
+            flash("菜單添加成功！")
             return redirect(url_for("menu_list"))
         else:
-            flash("添加菜单项失败，请稍后再试！")
+            flash("添加菜單失敗，請稍後再試！")
 
     return render_template("add_menu_item.html")
 
@@ -145,32 +145,32 @@ def edit_menu_item_route(item_id):
         (item for item in get_menu_items(restaurant_id) if item['id'] == item_id), None
     )
     if not menu_item:
-        flash("菜单项未找到。")
+        flash("菜單項未找到。")
         return redirect(url_for("menu_list"))
 
-    # 初始化表单并填充默认值
+    # 初始化表單並填充默認值
     form = MenuItemForm(
         name=menu_item.get("name"),
         description=menu_item.get("description"),
         price=menu_item.get("price")
     )
 
-    # 当前图片路径修正，用于显示和存储
+    # 當前圖片路徑修正，用於顯示和儲存
     current_image_path = menu_item.get('image_path', '').replace("\\", "/")
     display_image_path = (
         url_for('static', filename=current_image_path) if current_image_path else None
     )
 
     if form.validate_on_submit():
-        # 处理新图片上传
+        # 處理圖片上傳
         if form.image.data:
             new_image_path = save_uploaded_file(form.image.data)
             if not new_image_path:
-                flash("图片上传失败，请重新尝试。")
+                flash("圖片上傳失敗，請重新嘗試。")
                 return redirect(url_for("edit_menu_item_route", item_id=item_id))
             current_image_path = new_image_path.replace("\\", "/")
 
-        # 更新菜单项
+        # 更新菜單項
         if edit_menu_item(
             item_id,
             form.name.data,
@@ -179,10 +179,10 @@ def edit_menu_item_route(item_id):
             restaurant_id,
             current_image_path
         ):
-            flash("菜单项更新成功！")
+            flash("菜單項更新成功！")
             return redirect(url_for("menu_list"))
 
-        flash("更新菜单项失败。")
+        flash("更新菜單項失敗。")
 
     return render_template(
         "edit_menu_item.html",
@@ -197,9 +197,9 @@ def edit_menu_item_route(item_id):
 def delete_menu_item_route(item_id):
     restaurant_id = session.get('user_id')
     if delete_menu_item(item_id, restaurant_id):
-        flash("菜单项删除成功！")
+        flash("菜單項刪除成功！")
     else:
-        flash("删除菜单项失败。")
+        flash("刪除菜單項失敗。")
     return redirect(url_for("menu_list"))
 
 @app.route("/orders")
@@ -220,13 +220,13 @@ def order_details(order_id):
 def update_order_status_route(order_id):
     new_status = request.form['status']
     if not new_status:
-        flash("无效的状态！")
+        flash("無效得狀態！")
         return redirect(url_for("order_details", order_id=order_id))
     restaurant_id = session.get('user_id')
     if update_order_status(order_id, new_status, restaurant_id):
-        flash("订单状态更新成功！")
+        flash("訂單狀態更新成功！")
     else:
-        flash("更新订单状态失败。")
+        flash("更新訂單狀態失敗。")
     return redirect(url_for("orders"))
 
 
@@ -235,16 +235,16 @@ def update_order_status_route(order_id):
 def notify_rider(order_id):
     restaurant_id = session.get('user_id')
     if notify_rider_to_pickup(order_id, restaurant_id):
-        flash("骑手已被通知去取餐。")
+        flash("外送員已被通知去取餐。")
     else:
-        flash("通知骑手失败。")
+        flash("通知外送員失敗。")
     return redirect(url_for("orders"))
 
 @app.route("/logout")
 @login_required
 def logout():
     session.pop('user_id', None)
-    flash("已注销，欢迎再次登录！")
+    flash("已註銷，歡迎再次登入！")
     return redirect(url_for('login'))
 
 @app.route('/customermenu')
@@ -265,38 +265,38 @@ def customermenu():
 @app.route("/food/<restaurant_id>")
 @login_required
 def get_menu_restaurant(restaurant_id):
-    # 获取指定餐厅的菜单项
+    # 獲取指定餐廳菜單項
     menu_items = get_menu_restaurant_data(restaurant_id)
 
-    # 确保图片路径为有效的静态资源
+    # 確保圖片路徑為有效的靜態資源
     for item in menu_items:
         if item.get('image_path'):
-            # 确保图片路径相对于静态文件夹
+            # 確保圖片路徑相對於靜態文件夾
             item['image_path'] = item['image_path'].replace("\\", "/")
 
     return render_template("ordermenu.html", menu_items=menu_items)
 
-# 查看购物车商品详情
+# 選擇商品數量
 @app.route('/cart_item/<int:item_id>', methods=['GET'])
 @login_required
 def view_cart_item(item_id):
-    # 获取商品信息
+    # 獲取商品消息
     item = cartmenu_items(item_id)
     if not item:
         flash('商品未找到')
         return "商品未找到", 404
 
-    # 查询商品所属的餐厅 ID
+    # 查詢商品所屬餐廳 ID
     restaurant_id_query = "SELECT restaurant_id FROM menu_items WHERE id = %s"
     restaurant_id = execute_query(restaurant_id_query, (item_id,), fetchone=True)
     if not restaurant_id:
-        flash('无法获取餐厅信息')
-        return "无法获取餐厅信息", 404
+        flash('無法獲取餐廳信息')
+        return "無法獲取餐廳信息", 404
 
-    # 渲染商品详情页面
+    # 渲染商品詳情頁面
     return render_template('cart.html', item=item, restaurant_id=restaurant_id['restaurant_id'])
 
-# 添加商品到购物车
+#添加商品到購物車
 @app.route('/add_to_cart', methods=['POST', 'GET'])
 @login_required
 def add_to_cart():
@@ -308,31 +308,31 @@ def add_to_cart():
             return jsonify({'success': False, 'message': '商品不存在！'}), 404
 
         try:
-            # 获取并验证数量
+            # 獲取並驗證數量
             quantity = int(request.form.get('quantity', 1))
             item_name = menu_item['name']
-            item_price = float(menu_item['price'])  # 确保是数值类型
+            item_price = float(menu_item['price'])  # 確保是數值類型
             restaurant_id = menu_item.get('restaurant_id', 1)
 
-            # 确保购物车存在
+            # 確保購物車存在
             if 'cart' not in session:
                 session['cart'] = []
 
-            # 检查是否有其他餐厅的商品
+            # 檢查是否有其他家餐廳商品
             if session['cart'] and session['cart'][0]['restaurant_id'] != restaurant_id:
-                return jsonify({'success': False, 'message': '购物车中已有其他餐厅的商品，请清空购物车后添加新商品！'}), 400
+                return jsonify({'success': False, 'message': '購物車中已有其他餐廳的商品，請清空購物車後添加新商品！'}), 400
 
-            # 计算小计
+            # 計算總共金額
             total_price = quantity * item_price
 
-            # 检查购物车是否已有此商品
+            # 檢查購物車是否有此商品
             for item in session['cart']:
                 if item['item_id'] == item_id:
                     item['quantity'] += quantity
                     item['total_price'] += total_price
                     break
             else:
-                # 如果购物车中没有此商品，新增
+                # 如果購物車沒有此商品，新增
                 session['cart'].append({
                     'restaurant_id': restaurant_id,
                     'item_id': item_id,
@@ -342,23 +342,23 @@ def add_to_cart():
                     'total_price': total_price
                 })
 
-            session.modified = True  # 确保 session 更新生效
+            session.modified = True  # 確保 session 更新生效
 
-            # 计算购物车总量和总金额
+            # 計算購物車總量和金額
             total_quantity = sum(item['quantity'] for item in session['cart'])
             total_amount = sum(item['total_price'] for item in session['cart'])
 
             return jsonify({'success': True, 'cartQuantity': total_quantity, 'cartAmount': total_amount})
 
         except ValueError as e:
-            return jsonify({'success': False, 'message': f'数据处理错误: {e}'}), 400
+            return jsonify({'success': False, 'message': f'數據處理錯誤: {e}'}), 400
 
     elif request.method == 'GET':
-        # 处理 GET 请求，显示结算页面
+        # 處理 GET 請求，顯示結算頁面
         cart = session.get('cart', [])
         total_amount = sum(item['total_price'] for item in cart) if cart else 0
 
-        # 获取购物车中第一个商品的 ID，作为返回按钮的默认 ID
+        # 獲取購物車第一格商品的ID，作為返回按鈕的商品ID
         default_item_id = cart[0]['item_id'] if cart else None
 
         return render_template('checkout.html', cart=cart, total_amount=total_amount, default_item_id=default_item_id)
@@ -370,21 +370,21 @@ def remove_from_cart():
         data = request.get_json()
         item_id = int(data['item_id'])
 
-        # 检查购物车是否存在
+        # 檢查購物車是否存在
         if 'cart' not in session or not session['cart']:
-            return jsonify({'success': False, 'message': '购物车为空！'}), 404
+            return jsonify({'success': False, 'message': '購物車為空！'}), 404
 
-        # 删除指定商品
+        # 刪除指定商品
         session['cart'] = [item for item in session['cart'] if item['item_id'] != item_id]
         session.modified = True
 
-        # 计算新的总金额
+        # 計算新的總金額
         total_amount = sum(item['total_price'] for item in session['cart']) if session['cart'] else 0
 
         return jsonify({'success': True, 'totalAmount': total_amount})
     except Exception as e:
-        print(f"删除商品失败: {e}")
-        return jsonify({'success': False, 'message': '删除商品失败'}), 500
+        print(f"刪除商品失敗: {e}")
+        return jsonify({'success': False, 'message': '刪除商品失敗'}), 500
 
 @app.route('/sendorder', methods=['POST'])
 @login_required
@@ -393,166 +393,162 @@ def sendorder():
         # 从 session 获取 user_id
         user_id = session.get('user_id')
         if not user_id:
-            return "用户未登录或会话已过期", 401
+            return "使用者未登入或會話已過期", 401
 
-        # 从表单中获取其他数据
+        # 從表單中獲取其他資料
         total_amount = float(request.form['total_amount'])
         restaurant_id = request.form['restaurant_id']
-        order_items = request.form.getlist('order_items')  # 获取订单商品数据
+        order_items = request.form.getlist('order_items')  # 獲取訂單商品資料
 
-        # 处理 order_items，格式：菜品名称 x 数量
+        # 處理 order_items，格式：菜品名稱 x 數量
         formatted_order_items = []
         for item in order_items:
             try:
-                # 解析 "菜品名称 x 数量" 格式
+                # 解析「菜品名稱 x 數量」格式
                 item_name, quantity = item.split(' x ')
-                formatted_order_items.append((item_name.strip(), int(quantity)))  # 去除可能的空格并转换为元组
+                formatted_order_items.append((item_name.strip(), int(quantity)))  # 去除可能的空格並轉換為元組
             except ValueError:
-                # 如果数据格式不正确，抛出异常
+                # 如果資料格式不正確，拋出異常
                 raise ValueError(f"订单项格式不正确: {item}")
 
-        # 格式化商品数据，转换为 "item_name*quantity" 的字符串
+        # 格式化商品資料，轉換為「item_name*quantity」的字串
         formatted_order_items_str = "; ".join([f"{item[0]}*{item[1]}" for item in formatted_order_items])
 
-        # 调用 Send_order 插入订单数据，并获取订单号
+        # 呼叫 Send_order 插入訂單資料，並獲取訂單號
         order_id = Send_order(
             restaurant_id=restaurant_id,
-            user_id=user_id,  # 直接使用从 session 获取的用户 ID
-            item_id_and_quantity=formatted_order_items,  # 使用元组列表
+            user_id=user_id,  # 直接使用從 session 獲取的使用者 ID
+            item_id_and_quantity=formatted_order_items,  # 使用元組列表
             total_price=total_amount
         )
         
-        if order_id:  # 如果订单插入成功并返回订单号
-            # 清空购物车
+        if order_id:  # 如果訂單插入成功並返回訂單號
+            # 清空購物車
             session.pop('cart', None)
             return render_template('sendorder.html', order_id=order_id)
         else:
-            return "订单提交失败，请稍后再试", 500
+            return "訂單提交失敗，請稍後再試", 500
 
     except Exception as e:
-        print(f"发送订单失败: {e}")
-        return "订单提交失败，请稍后再试", 500
- 
-@app.route('/comment')
-@login_required
-def comment():
-    return render_template('comment.html')
+        print(f"發送訂單失敗: {e}")
+        return "訂單提交失敗，請稍後再試", 500
 
 @app.route('/rate_order/<int:order_id>', methods=['GET'])
 @login_required
 def rate_order(order_id):
-    """显示订单评价页面"""
+    """顯示訂單評價頁面"""
     try:
-        # 从 session 获取用户 ID
+        # 從 session 獲取使用者 ID
         user_id = session.get('user_id')
         if not user_id:
-            flash("无效的用户身份，请重新登录")
+            flash("無效的使用者身份，請重新登入")
             return redirect(url_for('login'))
 
-        # 获取用户的所有订单
+        # 獲取使用者的所有訂單
         orders = get_user_orders(user_id)
 
-        # 查找指定订单
+        # 查找指定訂單
         order = next((o for o in orders if o['id'] == order_id), None)
         if not order:
-            flash("找不到该订单")
+            flash("找不到該訂單")
             return redirect(url_for('view_orders'))
 
-        # 渲染评价页面
+        # 渲染評價頁面
         return render_template('rate_order.html', order=order)
 
     except Exception as e:
-        print(f"获取订单信息失败: {e}")
-        flash("无法加载订单信息，请稍后再试")
+        print(f"獲取訂單資訊失敗: {e}")
+        flash("無法加載訂單資訊，請稍後再試")
         return redirect(url_for('view_orders'))
 
 
 @app.route('/submit_review/<int:order_id>', methods=['POST'])
 @login_required
 def submit_review(order_id):
-    """提交订单评价"""
+    """提交訂單評價"""
     try:
-        # 从表单中获取评分和评论
+        # 從表單中獲取評分和評論
         rating = request.form.get('rating')
         comment = request.form.get('comment')
 
-        # 验证输入
+        # 驗證輸入
         if not rating:
-            flash("评分是必填项")
+            flash("評分是必填項")
             return redirect(url_for('rate_order', order_id=order_id))
         if not comment:
-            flash("请提供评论内容")
+            flash("請提供評論內容")
             return redirect(url_for('rate_order', order_id=order_id))
 
-        # 保存评价到数据库
+        # 儲存評價到資料庫
         submit_order_review(order_id, rating, comment)
 
-        flash("评价提交成功，谢谢您的反馈！")
+        flash("評價提交成功，謝謝您的反饋！")
         return redirect(url_for('view_orders'))
 
     except Exception as e:
-        print(f"提交评价失败: {e}")
-        flash("评价提交失败，请稍后再试")
+        print(f"提交評價失敗: {e}")
+        flash("評價提交失敗，請稍後再試")
         return redirect(url_for('rate_order', order_id=order_id))
 
 
 @app.route('/vieworders')
 @login_required
 def view_orders():
-    """展示用户的订单状态"""
+    """展示使用者的訂單狀態"""
     try:
-        user_id = session.get('user_id')  # 確保從 session 中獲取用戶 ID
+        user_id = session.get('user_id')  # 確保從 session 中獲取使用者 ID
         if not user_id:
-            flash("無法確定您的身份，請重新登錄")
+            flash("無法確定您的身份，請重新登入")
             return redirect(url_for('login'))
         
-        # 調用函數獲取用戶訂單
+        # 調用函數獲取使用者訂單
         orders = get_user_orders(user_id)
         
         if not orders:
-            flash("您沒有任何订单")
+            flash("您沒有任何訂單")
         
         return render_template('view_orders.html', orders=orders)
     
     except Exception as e:
-        print(f"获取订单失败: {e}")
-        flash("无法获取订单，请稍后再试")
+        print(f"獲取訂單失敗: {e}")
+        flash("無法獲取訂單，請稍後再試")
         return redirect(url_for('index'))
 
 
 @app.route('/complete_order/<int:order_id>', methods=['POST'])
 @login_required
 def complete_order(order_id):
-    """标记订单为已完成并跳转到评价页面"""
+    """標記訂單為已完成並跳轉到評價頁面"""
     try:
-        # 从 session 获取用户 ID
+        # 從 session 獲取使用者 ID
         user_id = session.get('user_id')
         if not user_id:
-            flash("无效的用户身份，请重新登录")
+            flash("無效的使用者身份，請重新登入")
             return redirect(url_for('login'))
 
-        # 获取用户的所有订单
+        # 獲取使用者的所有訂單
         orders = get_user_orders(user_id)
 
-        # 检查是否存在目标订单
+        # 檢查是否存在目標訂單
         order = next((o for o in orders if o['id'] == order_id), None)
         if not order:
-            flash("找不到该订单")
+            flash("找不到該訂單")
             return redirect(url_for('view_orders'))
 
-        # 从订单中获取 restaurant_id
+        # 從訂單中獲取 restaurant_id
         restaurant_id = order['restaurant_id']
 
-        # 更新订单状态为已完成
-        update_order_status(order_id, restaurant_id, 'Completed')  # 确保函数定义中参数顺序正确
+        # 更新訂單狀態為已完成
+        update_order_status(order_id, restaurant_id, 'Completed')  # 確保函數定義中參數順序正確
 
-        # 跳转到评价页面
+        # 跳轉到評價頁面
         return redirect(url_for('rate_order', order_id=order_id))
 
     except Exception as e:
-        print(f"标记订单完成失败: {e}")
-        flash("无法完成订单，请稍后再试")
+        print(f"標記訂單完成失敗: {e}")
+        flash("無法完成訂單，請稍後再試")
         return redirect(url_for('view_orders'))
+
 
 if __name__ == '__main__':
     app.run(debug=True)

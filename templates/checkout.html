@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-Hans">
+<html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>购物车结算</title>
+    <title>購物車結算</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -67,35 +67,62 @@
         .delete-btn:hover {
             background-color: darkred;
         }
+        /* Customizing the "返回全部餐廳菜單" button */
+        .back-btn-top {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: #3c2f21;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            text-decoration: none;
+        }
+        .back-btn-top:hover {
+            background-color: #2c1d15;
+        }
+        /* Customizing the "返回菜單" button */
+        .back-btn-bottom {
+            background-color: #3c2f21;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 20px;
+            display: inline-block;
+        }
+        .back-btn-bottom:hover {
+            background-color: #2c1d15;
+        }
     </style>
 </head>
 <body>
     <header>
-        <h1>购物车详情</h1>
+        <h1>購物車詳情</h1>
     </header>
 
     <main>
         {% if cart and cart|length > 0 %}
             <div class="item-details">
-                <h3>购物车商品</h3>
+                <h3>購物車商品</h3>
                 {% for item in cart %}
                     <p><strong>商品：</strong> {{ item['item_name'] }}</p>
-                    <p><strong>价格：</strong> ¥{{ item['item_price'] }}</p>
-                    <p><strong>数量：</strong> {{ item['quantity'] }}</p>
-                    <p><strong>小计：</strong> ¥{{ item['total_price'] }}</p>
+                    <p><strong>價格：</strong> ¥{{ item['item_price'] }}</p>
+                    <p><strong>數量：</strong> {{ item['quantity'] }}</p>
+                    <p><strong>小計：</strong> ¥{{ item['total_price'] }}</p>
                     <button 
                         class="delete-btn" 
                         onclick="deleteItem('{{ item['item_id'] }}')">
-                        删除
+                        刪除
                     </button>
                     <hr>
                 {% endfor %}
                 <div class="cart-total">
-                    <p><strong>总计金额：</strong> ¥{{ total_amount }}</p>
+                    <p><strong>總計金額：</strong> ¥{{ total_amount }}</p>
                 </div>
             </div>
         {% else %}
-            <p>购物车为空，请添加商品。</p>
+            <p>購物車為空，請添加商品。</p>
         {% endif %}
 
         <form id="submit-order-form" method="POST" action="{{ url_for('sendorder') }}">
@@ -107,11 +134,15 @@
                     <input type="hidden" name="order_items" value="{{ item['item_name'] }} x {{ item['quantity'] }}">
                 {% endfor %}
             {% endif %}
-            <button type="submit" class="submit-order-btn">送出订单</button>
+            <button type="submit" class="submit-order-btn">送出訂單</button>
         </form>
 
-        <a href="/customermenu" class="back-btn">返回菜单</a>
+        <a href="{% if cart and cart|length > 0 %}{{ url_for('get_menu_restaurant', restaurant_id=cart[0]['restaurant_id']) }}{% else %}/customermenu{% endif %}" class="back-btn-bottom">
+            返回菜單
+        </a>        
     </main>
+
+    <a href="/customermenu" class="back-btn-top">返回全部餐廳菜單</a>
 
     <script>
         function deleteItem(itemId) {
@@ -127,12 +158,12 @@
                 if (data.success) {
                     location.reload();
                 } else {
-                    alert(data.message || '删除商品失败');
+                    alert(data.message || '刪除商品失敗');
                 }
             })
             .catch(error => {
-                console.error('删除商品错误:', error);
-                alert('删除商品失败，请稍后再试');
+                console.error('刪除商品錯誤:', error);
+                alert('刪除商品失敗，請稍後再試');
             });
         }
     </script>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-Hans">
+<html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,14 +13,14 @@
             color: #333;
             display: flex;
             flex-direction: column;
-            min-height: 100vh; /* 页面高度至少等于视口高度 */
+            min-height: 100vh; /* 頁面高度至少等於視口高度 */
         }
 
         header {
             background-color: #8b4513;
             color: white;
             padding: 10px 20px;
-            position: relative; /* 确保返回按钮可以定位 */
+            position: relative; /* 確保返回按鈕可以定位 */
         }
 
         header h1 {
@@ -30,7 +30,7 @@
         }
 
         .back-btn {
-            position: absolute; /* 使用绝对定位 */
+            position: absolute; /* 使用絕對定位 */
             top: 10px;
             left: 20px;
             text-decoration: none;
@@ -46,9 +46,9 @@
         }
         
         main {
-            flex: 1; /* 主体内容占据剩余空间 */
+            flex: 1; /* 主體內容佔據剩餘空間 */
             padding: 20px;
-            padding-bottom: 80px; /* 确保底部留出足够空间 */
+            padding-bottom: 80px; /* 確保底部留出足夠空間 */
         }
 
         .menu-list {
@@ -87,36 +87,35 @@
             margin-top: 10px;
         }
 
-
         footer {
             background-color: #8b4513;
             color: white;
             text-align: center;
             padding: 10px 0;
         }
+
         .add-to-cart-btn {
-    background-color: #ff4d4d;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
-    font-size: 16px;
-    cursor: pointer;
-    text-align: center;
-    display: inline-block;
-    margin-top: 10px;
-    transition: background-color 0.3s ease;
-}
+            background-color: #ff4d4d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            text-align: center;
+            display: inline-block;
+            margin-top: 10px;
+            transition: background-color 0.3s ease;
+        }
 
-.add-to-cart-btn:hover {
-    background-color: #cc0000;
-}
-
+        .add-to-cart-btn:hover {
+            background-color: #cc0000;
+        }
     </style>
 </head>
 <body>
     <header>
-        <a href="{{ url_for('customermenu') }}" class="back-btn">返回</a> <!-- 返回按钮链接到 /customermenu -->
+        <a href="{{ url_for('customermenu') }}" class="back-btn">返回</a> <!-- 返回按鈕鏈接到 /customermenu -->
         <h1>美食菜單</h1>
     </header>
 
@@ -137,16 +136,17 @@
                 </div>
                 {% endfor %}
             {% else %}
-                <p>目前没有可用的菜單项。</p>
+                <p>目前沒有可用的菜單項目。</p>
             {% endif %}
         </section>
     </main>
 
     <footer>
-        <p>&copy; 2024 餐厅管理平台</p>
+        <p>&copy; 2024 餐廳管理平台</p>
     </footer>
 </body>
 </html>
+
 
 
 

@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-Hans">
+<html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>餐点管理</title>
+    <title>餐點管理</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -13,14 +13,14 @@
             color: #333;
             display: flex;
             flex-direction: column;
-            min-height: 100vh; /* 页面高度至少等于视口高度 */
+            min-height: 100vh; /* 頁面高度至少等於視口高度 */
         }
 
         header {
             background-color: #8b4513;
             color: white;
             padding: 10px 20px;
-            position: relative; /* 确保返回按钮可以定位 */
+            position: relative; /* 確保返回按鈕可以定位 */
         }
 
         header h1 {
@@ -30,7 +30,7 @@
         }
 
         .back-btn {
-            position: absolute; /* 使用绝对定位 */
+            position: absolute; /* 使用絕對定位 */
             top: 10px;
             left: 20px;
             text-decoration: none;
@@ -47,7 +47,7 @@
 
         nav {
             margin-top: 10px;
-            text-align: center; /* 保持原本的按钮居中 */
+            text-align: center; /* 保持原本的按鈕居中 */
         }
 
         nav a {
@@ -65,9 +65,9 @@
         }
 
         main {
-            flex: 1; /* 主体内容占据剩余空间 */
+            flex: 1; /* 主體內容佔據剩餘空間 */
             padding: 20px;
-            padding-bottom: 80px; /* 确保底部留出足够空间 */
+            padding-bottom: 80px; /* 確保底部留出足夠空間 */
         }
 
         .menu-list {
@@ -152,10 +152,10 @@
 </head>
 <body>
     <header>
-        <a href="{{ url_for('index') }}" class="back-btn">返回</a> <!-- 返回按钮放置在左上角 -->
-        <h1>餐点管理</h1>
+        <a href="{{ url_for('index') }}" class="back-btn">返回</a> <!-- 返回按鈕放置在左上角 -->
+        <h1>餐點管理</h1>
         <nav>
-            <a href="{{ url_for('add_menu_item_route') }}">新增餐点</a>
+            <a href="{{ url_for('add_menu_item_route') }}">新增餐點</a>
         </nav>
     </header>
 
@@ -167,16 +167,16 @@
                     {% if item.image_path %}
                         <img src="{{ item.image_path | replace('\\', '/') }}" alt="{{ item.name }}">
                     {% else %}
-                        <p>没有图片</p>
+                        <p>沒有圖片</p>
                     {% endif %}
                 </div>
                 <div class="menu-item-details">
                     <h3>{{ item.name }}</h3>
                     <p class="description">{{ item.description }}</p>
-                    <p class="price">价格: ¥{{ item.price }}</p>
-                    <a href="{{ url_for('edit_menu_item_route', item_id=item.id) }}" class="edit-btn">编辑</a>
+                    <p class="price">價格: ¥{{ item.price }}</p>
+                    <a href="{{ url_for('edit_menu_item_route', item_id=item.id) }}" class="edit-btn">編輯</a>
                     <form action="{{ url_for('delete_menu_item_route', item_id=item.id) }}" method="POST" style="display:inline;">
-                        <button type="submit" class="delete-btn" onclick="return confirm('您确定要删除这个餐点吗？')">删除</button>
+                        <button type="submit" class="delete-btn" onclick="return confirm('您確定要刪除這個餐點嗎？')">刪除</button>
                     </form>
                 </div>
             </div>
@@ -185,7 +185,7 @@
     </main>
 
     <footer>
-        <p>&copy; 2024 餐厅管理平台</p>
+        <p>&copy; 2024 餐廳管理平台</p>
     </footer>
 </body>
 </html>
