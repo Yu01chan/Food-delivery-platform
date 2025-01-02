@@ -159,6 +159,7 @@ def notify_rider_to_pickup(order_id, restaurant_id):
         return True
     return False
 
+#顧客
 # 定義獲取菜單項目的函數
 def get_menu_items_customer_data():
     """獲取所有餐廳的菜單項"""
@@ -248,7 +249,20 @@ def get_user_orders(user_id):
     orders = execute_query(query, (user_id,), fetchall=True)
     return orders
 
+def submit_order_review(order_id, rating, comment):
+    """保存訂單評價並更新訂單狀態"""
+    # 保存評價
+    query = """
+        INSERT INTO order_reviews (order_id, rating, comment, created_at)
+        VALUES (%s, %s, %s, NOW())
+    """
+    execute_query(query, (order_id, rating, comment))
 
+    # 更新訂單的評價狀態
+    update_query = "UPDATE orders SET reviewed = 1 WHERE id = %s"
+    execute_query(update_query, (order_id,))
+
+#外送員
 # 訂單管理功能
 def get_available_orders(status=None, rider_id=None):
     """
@@ -321,19 +335,6 @@ def complete_order(order_id, rider_id):
     execute_query(query, (order_id, rider_id))
     return True
 
-
-def submit_order_review(order_id, rating, comment):
-    """保存訂單評價並更新訂單狀態"""
-    # 保存評價
-    query = """
-        INSERT INTO order_reviews (order_id, rating, comment, created_at)
-        VALUES (%s, %s, %s, NOW())
-    """
-    execute_query(query, (order_id, rating, comment))
-
-    # 更新訂單的評價狀態
-    update_query = "UPDATE orders SET reviewed = 1 WHERE id = %s"
-    execute_query(update_query, (order_id,))
 
 
 

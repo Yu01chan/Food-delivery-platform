@@ -248,7 +248,7 @@ def logout():
     flash("已註銷，歡迎再次登入！")
     return redirect(url_for('login'))
 
-#客戶
+#顧客
 @app.route('/customermenu')
 @login_required
 def customermenu():
