@@ -55,20 +55,25 @@ INSERT INTO `menu_items` (`id`, `name`, `description`, `price`, `restaurant_id`,
 
 CREATE TABLE `orders` (
   `id` int(11) NOT NULL,
-  `restaurant_id` varchar(11) NOT NULL,
-  `user_id` varchar(255) NOT NULL,
-  `order_items` text NOT NULL,
+  `user_id` varchar(60) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL,
+  `restaurant_id` varchar(11) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
+  `order_items` text CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
   `customer_total` float NOT NULL,
-  `status` enum('Pending','Ready for Pickup','Completed') DEFAULT 'Pending',
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `status` varchar(255) NOT NULL DEFAULT 'Pending',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `reviewed` tinyint(1) DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
 --
 -- 傾印資料表的資料 `orders`
 --
 
-INSERT INTO `orders` (`id`, `restaurant_id`, `user_id`, `order_items`, `customer_total`, `status`, `created_at`) VALUES
-(1, '7', '', '???&1', 30, 'Pending', '2025-01-01 16:30:11');
+INSERT INTO `orders` (`id`, `user_id`, `restaurant_id`, `order_items`, `customer_total`, `status`, `created_at`, `reviewed`) VALUES
+(14, 'gg', 'kj', '炒飯&1', 65, 'Completed', '2025-01-02 03:13:16', 1),
+(15, 'gg', 'TR', '鰻魚飯(大)&1', 250, 'Pending', '2025-01-02 03:21:33', 0),
+(16, 'gg', 'kj', '炒飯&1', 65, 'Completed', '2025-01-02 04:11:03', 1),
+(17, 'gg', '7', '紅燒肉&1; 燙青菜&1', 130, 'Pending', '2025-01-02 06:10:08', 0);
+
 
 -- --------------------------------------------------------
 
@@ -152,7 +157,8 @@ ALTER TABLE `menu_items`
 -- 使用資料表自動遞增(AUTO_INCREMENT) `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+COMMIT;
 
 --
 -- 使用資料表自動遞增(AUTO_INCREMENT) `order_items`
