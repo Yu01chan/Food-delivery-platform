@@ -233,7 +233,7 @@ def Send_order(restaurant_id, user_id, item_id_and_quantity, total_price):
 
 def get_user_orders(user_id):
     """根据用户 ID 获取该用户的所有订单"""
-    query = "SELECT * FROM orders WHERE user_id = %s"
+    query = "SELECT id, restaurant_id, order_items, customer_total, status, created_at FROM orders WHERE user_id = %s"
     orders = execute_query(query, (user_id,), fetchall=True)
     return orders
 
@@ -311,6 +311,24 @@ def complete_order(order_id, rider_id):
     """
     execute_query(query, (order_id, rider_id))
     return True
+
+
+def submit_order_review(order_id, rating, comment):
+    """保存订单评价并更新订单状态"""
+    # 保存评价
+    query = """
+        INSERT INTO reviews (order_id, rating, comment, created_at)
+        VALUES (%s, %s, %s, NOW())
+    """
+    execute_query(query, (order_id, rating, comment))
+
+    # 更新订单的评价状态
+    update_query = "UPDATE orders SET reviewed = TRUE WHERE id = %s"
+    execute_query(update_query, (order_id,))
+
+
+
+
 
 
 

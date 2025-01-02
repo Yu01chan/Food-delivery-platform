@@ -6,58 +6,101 @@
     <title>查看订单状态</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Arial', sans-serif;
             background-color: #f4f4f4;
-            text-align: center;
+            margin: 0;
             padding: 20px;
+            text-align: center;
+        }
+        h1 {
+            font-size: 32px;
+            color: #5d4037;
+            margin-bottom: 30px;
         }
         .order-item {
-            background-color: white;
+            background-color: #fff;
             padding: 20px;
-            margin: 10px 0;
-            border-radius: 8px;
+            margin: 20px auto;
+            border-radius: 10px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 80%;
+            max-width: 700px;
+            text-align: left;
         }
         .order-item h3 {
-            margin: 0;
-            font-size: 20px;
+            font-size: 24px;
+            color: #8b4513;
+            margin-bottom: 15px;
         }
         .order-item p {
-            margin: 5px 0;
             font-size: 16px;
+            color: #4b2e2a;
+            margin: 8px 0;
+        }
+        .order-status {
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .status {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            color: white;
         }
         .status-pending {
-            color: #ff9800;
-            font-weight: bold;
+            background-color: #ff9800;
         }
         .status-processing {
-            color: #ff5722;
-            font-weight: bold;
+            background-color: #ff5722;
         }
         .status-completed {
-            color: #007bff;
-            font-weight: bold;
+            background-color: #28a745;
         }
         .order-item ul {
             list-style-type: none;
             padding-left: 0;
+            margin: 0;
         }
         .order-item ul li {
             font-size: 14px;
             color: #555;
+            margin-bottom: 8px;
+        }
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+        .order-header div {
+            width: 48%;
         }
         .button {
             display: inline-block;
-            padding: 10px 20px;
-            margin-top: 20px;
+            padding: 12px 30px;
             background-color: #007bff;
             color: white;
             text-decoration: none;
-            border-radius: 4px;
+            border-radius: 30px;
             font-size: 16px;
+            margin-top: 20px;
+            transition: background-color 0.3s;
         }
         .button:hover {
             background-color: #0056b3;
+        }
+        .complete-order-btn {
+            background-color: #28a745;
+            margin-top: 20px;
+        }
+        .complete-order-btn:hover {
+            background-color: #218838;
+        }
+        .no-orders {
+            font-size: 18px;
+            color: #666;
+            margin-top: 20px;
         }
     </style>
 </head>
@@ -67,23 +110,48 @@
     {% if orders %}
         {% for order in orders %}
             <div class="order-item">
-                <h3>订单号：{{ order.id }}</h3>
-                <p>餐厅 ID：{{ order.restaurant_id }}</p>
-                <p>总金额：¥{{ order.customer_total }}</p>
-                <p class="status-{{ order.status.lower() }}">状态：{{ order.status }}</p>
+                <div class="order-header">
+                    <div>
+                        <h3>订单号：{{ order.id }}</h3>
+                        <p>餐厅 ID：{{ order.restaurant_id }}</p>
+                    </div>
+                    <div>
+                        <p><strong>总金额：</strong>¥{{ order.customer_total }}</p>
+                    </div>
+                </div>
+
+                <div class="order-status">
+                    <p><strong>餐厅状态：</strong> {{ order.status }}</p>
+                    <p><strong>骑手状态：</strong> {{ order.delivery_status or "待派送" }}</p>
+                </div>
+
                 <h4>餐品：</h4>
                 <ul>
                     {% for item in order.order_items.split(';') %}
                         <li>{{ item }}</li>
                     {% endfor %}
                 </ul>
+
                 <p>订单创建时间：{{ order.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
+
+                <!-- 只有订单完成时才显示评价按钮 -->
+                {% if order.status == 'Completed' %}
+                    {% if not order.reviewed %}
+                        <form action="{{ url_for('submit_review', order_id=order.id) }}" method="POST">
+                            <button type="submit" class="button">提交评价</button>
+                        </form>
+                    {% else %}
+                        <p>感谢您的评价！</p>
+                    {% endif %}
+                {% else %}
+                    <p><span class="status status-processing">订单尚未完成，无法评价。</span></p>
+                {% endif %}
             </div>
         {% endfor %}
     {% else %}
-        <p>您当前没有任何订单。</p>
+        <p class="no-orders">您当前没有任何订单。</p>
     {% endif %}
 
-    <a href="{{ url_for('index') }}" class="button">返回首页</a>
+    <a href="{{ url_for('customermenu') }}" class="button">返回首页</a>
 </body>
 </html>

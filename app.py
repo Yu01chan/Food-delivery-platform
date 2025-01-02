@@ -7,15 +7,18 @@ from wtforms.validators import DataRequired, Length
 from flask import session, redirect, url_for, request, render_template
 from flask import jsonify
 import os
-from flask_login import LoginManager
-from flask_login import current_user
 from dbUtils import (
     register_users, login_users, add_menu_item, get_menu_items,
     edit_menu_item, delete_menu_item, get_orders, get_order_details,
     update_order_status, notify_rider_to_pickup,
     get_menu_items_customer_data,get_menu_restaurant_data,
+<<<<<<< HEAD
     cartmenu_items,checkout_items,execute_query,Send_order,get_available_orders,get_available_orders,accept_order,pickup_order,complete_order
     )
+=======
+    cartmenu_items,checkout_items,execute_query,Send_order,insert_into_db,get_user_orders,submit_order_review
+)
+>>>>>>> a1676be722b96a7179e6732d82e28c1becf02b63
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '123TyU%^&'
@@ -24,12 +27,6 @@ app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif'}
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 限制最大上传文件为 16MB
 
 
-login_manager = LoginManager()
-login_manager.init_app(app)
-
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))  # 确保返回的是 User 实例
 
 # Utility Functions
 def allowed_file(filename):
@@ -398,8 +395,12 @@ def remove_from_cart():
 @login_required
 def sendorder():
     try:
-        # 从表单中获取数据
-        user_id = request.form['user_id']
+        # 从 session 获取 user_id
+        user_id = session.get('user_id')
+        if not user_id:
+            return "用户未登录或会话已过期", 401
+
+        # 从表单中获取其他数据
         total_amount = float(request.form['total_amount'])
         restaurant_id = request.form['restaurant_id']
         order_items = request.form.getlist('order_items')  # 获取订单商品数据
@@ -415,13 +416,13 @@ def sendorder():
                 # 如果数据格式不正确，抛出异常
                 raise ValueError(f"订单项格式不正确: {item}")
 
-        # 格式化商品数据，转换为 "item_name&quantity" 的字符串
+        # 格式化商品数据，转换为 "item_name*quantity" 的字符串
         formatted_order_items_str = "; ".join([f"{item[0]}*{item[1]}" for item in formatted_order_items])
 
         # 调用 Send_order 插入订单数据，并获取订单号
         order_id = Send_order(
             restaurant_id=restaurant_id,
-            user_id=user_id,
+            user_id=user_id,  # 直接使用从 session 获取的用户 ID
             item_id_and_quantity=formatted_order_items,  # 使用元组列表
             total_price=total_amount
         )
@@ -436,29 +437,93 @@ def sendorder():
     except Exception as e:
         print(f"发送订单失败: {e}")
         return "订单提交失败，请稍后再试", 500
+<<<<<<< HEAD
  
 @app.route('/comment')
 @login_required
 def comment():
     return render_template('comment.html')
 
+=======
+
+
+
+
+    
+@app.route('/rate_order/<int:order_id>', methods=['GET'])
+@login_required
+def rate_order(order_id):
+    """显示订单评价页面"""
+    try:
+        # 从 session 获取用户 ID
+        user_id = session.get('user_id')
+        if not user_id:
+            flash("无效的用户身份，请重新登录")
+            return redirect(url_for('login'))
+
+        # 获取用户的所有订单
+        orders = get_user_orders(user_id)
+
+        # 查找指定订单
+        order = next((o for o in orders if o['id'] == order_id), None)
+        if not order:
+            flash("找不到该订单")
+            return redirect(url_for('view_orders'))
+
+        # 渲染评价页面
+        return render_template('rate_order.html', order=order)
+
+    except Exception as e:
+        print(f"获取订单信息失败: {e}")
+        flash("无法加载订单信息，请稍后再试")
+        return redirect(url_for('view_orders'))
+
+
+@app.route('/submit_review/<int:order_id>', methods=['POST'])
+@login_required
+def submit_review(order_id):
+    """提交订单评价"""
+    try:
+        # 从表单中获取评分和评论
+        rating = request.form.get('rating')
+        comment = request.form.get('comment')
+
+        # 验证输入
+        if not rating:
+            flash("评分是必填项")
+            return redirect(url_for('rate_order', order_id=order_id))
+        if not comment:
+            flash("请提供评论内容")
+            return redirect(url_for('rate_order', order_id=order_id))
+
+        # 保存评价到数据库
+        submit_order_review(order_id, rating, comment)
+
+        flash("评价提交成功，谢谢您的反馈！")
+        return redirect(url_for('view_orders'))
+
+    except Exception as e:
+        print(f"提交评价失败: {e}")
+        flash("评价提交失败，请稍后再试")
+        return redirect(url_for('rate_order', order_id=order_id))
+
+
+>>>>>>> a1676be722b96a7179e6732d82e28c1becf02b63
 @app.route('/vieworders')
 @login_required
 def view_orders():
     """展示用户的订单状态"""
     try:
-        print(f"用户登录状态: {current_user.is_authenticated}")  # 打印登录状态
-        print(f"当前用户 ID: {current_user.id}")  # 打印用户 ID
+        user_id = session.get('user_id')  # 確保從 session 中獲取用戶 ID
+        if not user_id:
+            flash("無法確定您的身份，請重新登錄")
+            return redirect(url_for('login'))
         
-        if not current_user.is_authenticated:
-            flash("您必须先登录才能查看订单")
-            return redirect(url_for('login'))  # 重定向到登录页
-        
-        user_id = current_user.id
+        # 調用函數獲取用戶訂單
         orders = get_user_orders(user_id)
         
         if not orders:
-            flash("您没有任何订单")
+            flash("您沒有任何订单")
         
         return render_template('view_orders.html', orders=orders)
     
@@ -466,6 +531,41 @@ def view_orders():
         print(f"获取订单失败: {e}")
         flash("无法获取订单，请稍后再试")
         return redirect(url_for('index'))
+
+
+@app.route('/complete_order/<int:order_id>', methods=['POST'])
+@login_required
+def complete_order(order_id):
+    """标记订单为已完成并跳转到评价页面"""
+    try:
+        # 从 session 获取用户 ID
+        user_id = session.get('user_id')
+        if not user_id:
+            flash("无效的用户身份，请重新登录")
+            return redirect(url_for('login'))
+
+        # 获取用户的所有订单
+        orders = get_user_orders(user_id)
+
+        # 检查是否存在目标订单
+        order = next((o for o in orders if o['id'] == order_id), None)
+        if not order:
+            flash("找不到该订单")
+            return redirect(url_for('view_orders'))
+
+        # 从订单中获取 restaurant_id
+        restaurant_id = order['restaurant_id']
+
+        # 更新订单状态为已完成
+        update_order_status(order_id, restaurant_id, 'Completed')  # 确保函数定义中参数顺序正确
+
+        # 跳转到评价页面
+        return redirect(url_for('rate_order', order_id=order_id))
+
+    except Exception as e:
+        print(f"标记订单完成失败: {e}")
+        flash("无法完成订单，请稍后再试")
+        return redirect(url_for('view_orders'))
 
 if __name__ == '__main__':
     app.run(debug=True)
