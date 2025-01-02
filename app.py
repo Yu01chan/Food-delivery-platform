@@ -92,7 +92,7 @@ def login():
             elif user['role'] == 'customer':
                 return redirect(url_for('customermenu'))  # 如果是顧客，跳轉到 /customermenu
             elif user['role'] == 'delivery':
-                return redirect(url_for('rider_dashboard'))  # 如果是外送員，跳轉到 /vieworders
+                return redirect(url_for('rider_dashboard'))  # 如果是外送員，跳轉到 /rider_dashboard
         else:
             flash("登入失敗，請檢察您的帳密")
     return render_template("login.html")
