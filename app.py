@@ -248,6 +248,7 @@ def logout():
     flash("已註銷，歡迎再次登入！")
     return redirect(url_for('login'))
 
+#客戶
 @app.route('/customermenu')
 @login_required
 def customermenu():
@@ -433,6 +434,64 @@ def sendorder():
     except Exception as e:
         print(f"發送訂單失敗: {e}")
         return "訂單提交失敗，請稍後再試", 500
+    
+@app.route('/vieworders')
+@login_required
+def view_orders():
+    """展示使用者的訂單狀態"""
+    try:
+        user_id = session.get('user_id')  # 確保從 session 中獲取使用者 ID
+        if not user_id:
+            flash("無法確定您的身份，請重新登入")
+            return redirect(url_for('login'))
+        
+        # 調用函數獲取使用者訂單
+        orders = get_user_orders(user_id)
+        
+        if not orders:
+            flash("您沒有任何訂單")
+        
+        return render_template('view_orders.html', orders=orders)
+    
+    except Exception as e:
+        print(f"獲取訂單失敗: {e}")
+        flash("無法獲取訂單，請稍後再試")
+        return redirect(url_for('index'))
+
+
+@app.route('/complete_order/<int:order_id>', methods=['POST'])
+@login_required
+def complete_order(order_id):
+    """標記訂單為已完成並跳轉到評價頁面"""
+    try:
+        # 從 session 獲取使用者 ID
+        user_id = session.get('user_id')
+        if not user_id:
+            flash("無效的使用者身份，請重新登入")
+            return redirect(url_for('login'))
+
+        # 獲取使用者的所有訂單
+        orders = get_user_orders(user_id)
+
+        # 檢查是否存在目標訂單
+        order = next((o for o in orders if o['id'] == order_id), None)
+        if not order:
+            flash("找不到該訂單")
+            return redirect(url_for('view_orders'))
+
+        # 從訂單中獲取 restaurant_id
+        restaurant_id = order['restaurant_id']
+
+        # 更新訂單狀態為已完成
+        update_order_status(order_id, restaurant_id, 'Completed')  # 確保函數定義中參數順序正確
+
+        # 跳轉到評價頁面
+        return redirect(url_for('rate_order', order_id=order_id))
+
+    except Exception as e:
+        print(f"標記訂單完成失敗: {e}")
+        flash("無法完成訂單，請稍後再試")
+        return redirect(url_for('view_orders'))
 
 @app.route('/rate_order/<int:order_id>', methods=['GET'])
 @login_required
@@ -496,70 +555,7 @@ def submit_review(order_id):
         flash("評價提交失敗，請稍後再試")
         return redirect(url_for('rate_order', order_id=order_id))
 
-
-
-@app.route('/vieworders')
-@login_required
-def view_orders():
-    """展示使用者的訂單狀態"""
-    try:
-        user_id = session.get('user_id')  # 確保從 session 中獲取使用者 ID
-        if not user_id:
-            flash("無法確定您的身份，請重新登入")
-            return redirect(url_for('login'))
-        
-        # 調用函數獲取使用者訂單
-        orders = get_user_orders(user_id)
-        
-        if not orders:
-            flash("您沒有任何訂單")
-        
-        return render_template('view_orders.html', orders=orders)
-    
-    except Exception as e:
-        print(f"獲取訂單失敗: {e}")
-        flash("無法獲取訂單，請稍後再試")
-        return redirect(url_for('index'))
-
-
-@app.route('/complete_order/<int:order_id>', methods=['POST'])
-@login_required
-def complete_order(order_id):
-    """標記訂單為已完成並跳轉到評價頁面"""
-    try:
-        # 從 session 獲取使用者 ID
-        user_id = session.get('user_id')
-        if not user_id:
-            flash("無效的使用者身份，請重新登入")
-            return redirect(url_for('login'))
-
-        # 獲取使用者的所有訂單
-        orders = get_user_orders(user_id)
-
-        # 檢查是否存在目標訂單
-        order = next((o for o in orders if o['id'] == order_id), None)
-        if not order:
-            flash("找不到該訂單")
-            return redirect(url_for('view_orders'))
-
-        # 從訂單中獲取 restaurant_id
-        restaurant_id = order['restaurant_id']
-
-        # 更新訂單狀態為已完成
-        update_order_status(order_id, restaurant_id, 'Completed')  # 確保函數定義中參數順序正確
-
-        # 跳轉到評價頁面
-        return redirect(url_for('rate_order', order_id=order_id))
-
-    except Exception as e:
-        print(f"標記訂單完成失敗: {e}")
-        flash("無法完成訂單，請稍後再試")
-        return redirect(url_for('view_orders'))
-
-
-if __name__ == '__main__':
-    app.run(debug=True)
-
+#外送員
 # 儀表板頁面
 @app.route("/rider/dashboard")
 @login_required
@@ -605,3 +601,8 @@ def rider_complete_order(order_id):
     else:
         flash("完成訂單失敗！")
     return redirect(url_for('rider_dashboard'))
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
+
