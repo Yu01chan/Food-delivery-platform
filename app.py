@@ -6,6 +6,7 @@ from wtforms import StringField, PasswordField, SubmitField, FileField, FloatFie
 from wtforms.validators import DataRequired, Length
 from flask import session, redirect, url_for, request, render_template
 from flask import jsonify
+import uuid
 import os
 from dbUtils import (
     register_users, login_users, add_menu_item, get_menu_items,
@@ -484,6 +485,11 @@ def submit_review(order_id):
             flash("请提供评论内容")
             return redirect(url_for('rate_order', order_id=order_id))
 
+        # 验证评分范围
+        if not rating.isdigit() or int(rating) < 1 or int(rating) > 5:
+            flash("评分必须是1到5之间的数字")
+            return redirect(url_for('rate_order', order_id=order_id))
+
         # 保存评价到数据库
         submit_order_review(order_id, rating, comment)
 
@@ -494,6 +500,7 @@ def submit_review(order_id):
         print(f"提交评价失败: {e}")
         flash("评价提交失败，请稍后再试")
         return redirect(url_for('rate_order', order_id=order_id))
+
 
 
 @app.route('/vieworders')
