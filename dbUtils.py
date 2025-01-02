@@ -233,9 +233,21 @@ def Send_order(restaurant_id, user_id, item_id_and_quantity, total_price):
 
 def get_user_orders(user_id):
     """根據用戶 ID 獲取該用戶的所有訂單"""
-    query = "SELECT id, restaurant_id, order_items, customer_total, status, created_at FROM orders WHERE user_id = %s"
+    query = """
+    SELECT 
+        id, 
+        restaurant_id, 
+        order_items, 
+        customer_total, 
+        status, 
+        reviewed, 
+        created_at 
+    FROM orders 
+    WHERE user_id = %s
+    """
     orders = execute_query(query, (user_id,), fetchall=True)
     return orders
+
 
 # 訂單管理功能
 def get_available_orders(status=None, rider_id=None):
