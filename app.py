@@ -12,14 +12,9 @@ from dbUtils import (
     edit_menu_item, delete_menu_item, get_orders, get_order_details,
     update_order_status, notify_rider_to_pickup,
     get_menu_items_customer_data,get_menu_restaurant_data,
-<<<<<<< HEAD
-    cartmenu_items,checkout_items,execute_query,Send_order,get_available_orders,get_available_orders,accept_order,pickup_order,complete_order
-    )
-=======
-    cartmenu_items,checkout_items,execute_query,Send_order,insert_into_db,get_user_orders,submit_order_review
-)
->>>>>>> a1676be722b96a7179e6732d82e28c1becf02b63
+    cartmenu_items,checkout_items,execute_query,Send_order,get_user_orders,submit_order_review
 
+)
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '123TyU%^&'
 app.config['UPLOAD_FOLDER'] = 'static/images'
@@ -437,19 +432,12 @@ def sendorder():
     except Exception as e:
         print(f"发送订单失败: {e}")
         return "订单提交失败，请稍后再试", 500
-<<<<<<< HEAD
  
 @app.route('/comment')
 @login_required
 def comment():
     return render_template('comment.html')
 
-=======
-
-
-
-
-    
 @app.route('/rate_order/<int:order_id>', methods=['GET'])
 @login_required
 def rate_order(order_id):
@@ -508,7 +496,6 @@ def submit_review(order_id):
         return redirect(url_for('rate_order', order_id=order_id))
 
 
->>>>>>> a1676be722b96a7179e6732d82e28c1becf02b63
 @app.route('/vieworders')
 @login_required
 def view_orders():
