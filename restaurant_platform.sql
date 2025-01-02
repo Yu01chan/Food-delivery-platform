@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- 主機： 127.0.0.1
--- 產生時間： 2025-01-01 19:23:01
+-- 產生時間： 2025-01-02 05:14:14
 -- 伺服器版本： 10.4.32-MariaDB
 -- PHP 版本： 8.2.12
 
@@ -69,9 +69,9 @@ CREATE TABLE `orders` (
 --
 
 INSERT INTO `orders` (`id`, `user_id`, `restaurant_id`, `order_items`, `customer_total`, `status`, `created_at`) VALUES
-(9, NULL, 'kj', '炒飯&1', 65, 'Pending', '2025-01-01 17:29:37'),
-(10, '', 'kj', '炒飯&2', 130, 'Completed', '2025-01-01 17:31:54'),
-(11, '', 'kj', '炒飯&1', 65, 'Pending', '2025-01-01 17:39:22');
+(14, 'gg', 'kj', '炒飯&1', 65, 'Completed', '2025-01-02 03:13:16'),
+(15, 'gg', 'TR', '鰻魚飯(大)&1', 250, 'Pending', '2025-01-02 03:21:33'),
+(16, 'gg', 'kj', '炒飯&1', 65, 'Completed', '2025-01-02 04:11:03');
 
 -- --------------------------------------------------------
 
@@ -86,6 +86,27 @@ CREATE TABLE `order_items` (
   `quantity` int(11) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- 資料表結構 `order_reviews`
+--
+
+CREATE TABLE `order_reviews` (
+  `id` int(11) NOT NULL,
+  `order_id` int(11) NOT NULL,
+  `rating` int(11) NOT NULL,
+  `comment` text NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+--
+-- 傾印資料表的資料 `order_reviews`
+--
+
+INSERT INTO `order_reviews` (`id`, `order_id`, `rating`, `comment`, `created_at`) VALUES
+(1, 14, 3, '1', '2025-01-02 04:03:43');
 
 -- --------------------------------------------------------
 
@@ -137,6 +158,13 @@ ALTER TABLE `order_items`
   ADD PRIMARY KEY (`id`);
 
 --
+-- 資料表索引 `order_reviews`
+--
+ALTER TABLE `order_reviews`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `order_id` (`order_id`);
+
+--
 -- 資料表索引 `users`
 --
 ALTER TABLE `users`
@@ -156,7 +184,7 @@ ALTER TABLE `menu_items`
 -- 使用資料表自動遞增(AUTO_INCREMENT) `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- 使用資料表自動遞增(AUTO_INCREMENT) `order_items`
@@ -165,10 +193,26 @@ ALTER TABLE `order_items`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- 使用資料表自動遞增(AUTO_INCREMENT) `order_reviews`
+--
+ALTER TABLE `order_reviews`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
 -- 使用資料表自動遞增(AUTO_INCREMENT) `users`
 --
 ALTER TABLE `users`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
+
+--
+-- 已傾印資料表的限制式
+--
+
+--
+-- 資料表的限制式 `order_reviews`
+--
+ALTER TABLE `order_reviews`
+  ADD CONSTRAINT `order_reviews_ibfk_1` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`);
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
