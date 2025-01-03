@@ -51,7 +51,7 @@
         {% for order in orders %}
             <div class="order-item">
                 <h3>訂單號：{{ order.id }}</h3>
-                <p>顧客地址：{{ order.delivery_address }}</p>
+                <p>餐廳地址：{{ order.address }}</p>
                 <p>餐點詳情：{{ order.order_items }}</p>
                 <a href="{{ url_for('confirm_delivery', order_id=order.id) }}" class="button">送達完成</a>
             </div>

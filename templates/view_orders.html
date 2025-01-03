@@ -123,7 +123,7 @@
                 <div class="order-status">
                     <p><strong>餐廳狀態：</strong> {{ order.status }}</p>
                     <p><strong>外送員狀態：</strong> {{ order.rider_delivery_status if order.rider_delivery_status else "派送中" }}</p>
-
+					<p><strong>外送員聯絡資訊：</strong> {{ order.phone }}</p>
                 </div>
 
                 <h4>餐品：</h4>
@@ -136,17 +136,17 @@
                 <p>訂單創建時間：{{ order.created_at.strftime('%Y-%m-%d %H:%M:%S') }}</p>
 
                 <!-- 只有訂單完成時才顯示評價按鈕 -->
-                {% if order.status == 'Completed' %}
-                    {% if order.reviewed == 0 %}
-                        <form action="{{ url_for('submit_review', order_id=order.id) }}" method="POST">
-                            <button type="submit" class="button">提交評價</button>
-                        </form>
-                    {% else %}
-                        <p>感謝您的評價！</p>
-                    {% endif %}
-                {% else %}
-                    <p><span class="status status-processing">訂單尚未完成，無法評價。</span></p>
-                {% endif %}
+                {% if order.status == 'Completed' and order.rider_delivery_status == 'On the Way' %}
+					{% if order.reviewed == 0 %}
+						<form action="{{ url_for('submit_review', order_id=order.id) }}" method="POST">
+							<button type="submit" class="button">提交評價</button>
+						</form>
+					{% else %}
+						<p>感謝您的評價！</p>
+					{% endif %}
+				{% else %}
+					<p><span class="status status-processing">訂單尚未完成或外送員尚未送達，無法評價。</span></p>
+				{% endif %}
             </div>
         {% endfor %}
     {% else %}

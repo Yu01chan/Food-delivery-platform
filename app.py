@@ -64,19 +64,30 @@ def login_required(f):
         return f(*args, **kwargs)
     return wrapper
 
-# 註冊頁面
 @app.route("/users", methods=["GET", "POST"]) 
 def users():
     if request.method == "POST":
         user_id = request.form['user_id']
         password = request.form['password']
-        role = request.form['role']  # 獲取 role 值
-        if register_users(user_id, password, role):  # 使用 register_users 函數
-            flash("注册成功！请登录")
+        role = request.form['role']  # 獲取角色
+        
+        # 根據角色選擇性處理地址或電話
+        address = None
+        phone = None
+        if role == "restaurant" or role == "customer":
+            address = request.form.get('address', None)
+        elif role == "delivery":
+            phone = request.form.get('phone', None)
+        
+        # 呼叫 register_users 函數，將 address 和 phone 傳入
+        if register_users(user_id, password, role, address=address, phone=phone):
+            flash("註冊成功！請登入")
             return redirect(url_for('login'))
         else:
-            flash("注册失败，账户可能已存在")
+            flash("註冊失敗，帳號可能已存在")
+    
     return render_template("users.html")
+
 
 @app.route("/login", methods=["GET", "POST"])
 def login():

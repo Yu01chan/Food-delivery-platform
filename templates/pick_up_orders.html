@@ -114,7 +114,7 @@
             <div class="order-item">
                 <h3>訂單號：{{ order.id }}</h3>
                 <p><strong>餐廳名稱：</strong>{{ order.restaurant_id }}</p>
-                <p><strong>取餐地址：</strong>{{ order.pickup_location }}</p>
+                <p><strong>取餐地址：</strong>{{ order.user_address }}</p>
                 <p class="order-items"><strong>餐點詳情：</strong>
                     {% if order.order_items %}
                         <span>

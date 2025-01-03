@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>註冊</title>
     <style>
+        /* 保持現有樣式 */
         body {
             font-family: Arial, sans-serif;
             margin: 0;
@@ -35,7 +36,7 @@
             margin-bottom: 5px;
             font-weight: bold;
         }
-        .form-group input {
+        .form-group input, .form-group select {
             width: 100%;
             padding: 10px;
             border: 1px solid #d2b48c;
@@ -43,7 +44,7 @@
             font-size: 16px;
             background: #fffaf0;
         }
-        .form-group input:focus {
+        .form-group input:focus, .form-group select:focus {
             border-color: #deb887;
             outline: none;
             background: #fff2e0;
@@ -74,6 +75,21 @@
             text-decoration: underline;
         }
     </style>
+    <script>
+        function toggleAdditionalField() {
+            const role = document.getElementById('role').value;
+            const addressField = document.getElementById('addressField');
+            const phoneField = document.getElementById('phoneField');
+
+            if (role === 'restaurant' || role === 'customer') {
+                addressField.style.display = 'block';
+                phoneField.style.display = 'none';
+            } else if (role === 'delivery') {
+                addressField.style.display = 'none';
+                phoneField.style.display = 'block';
+            }
+        }
+    </script>
 </head>
 <body>
     <div class="register-container">
@@ -83,7 +99,7 @@
             <div class="form-group">
                 <label for="user_id">帳號:</label>
                 <input type="text" id="user_id" name="user_id" required placeholder="輸入帳號" 
-                       aria-label="帳號" aria-describedby="userIdHelp">
+                       aria-label="帳號">
             </div>
             <div class="form-group">
                 <label for="password">密碼:</label>
@@ -92,11 +108,21 @@
             </div>
             <div class="form-group">
                 <label for="role">角色:</label>
-                <select id="role" name="role" required aria-label="角色">
+                <select id="role" name="role" required aria-label="角色" onchange="toggleAdditionalField()">
                     <option value="restaurant">餐廳</option>
                     <option value="customer">顧客</option>
                     <option value="delivery">外送員</option>
                 </select>
+            </div>
+            <div class="form-group" id="addressField">
+                <label for="address">地址:</label>
+                <input type="text" id="address" name="address" placeholder="輸入地址" 
+                       aria-label="地址">
+            </div>
+            <div class="form-group" id="phoneField" style="display: none;">
+                <label for="phone">電話號碼:</label>
+                <input type="tel" id="phone" name="phone" placeholder="輸入電話號碼" 
+                       aria-label="電話號碼">
             </div>
             
             <button type="submit" class="submit-btn">註冊</button>

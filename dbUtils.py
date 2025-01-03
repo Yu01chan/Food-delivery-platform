@@ -49,17 +49,31 @@ def execute_query(query, params=None, fetchone=False, fetchall=False):
             conn.close()
 
 
-# 餐廳用戶管理
-def register_users(user_id, password, role): 
-    """註冊新用戶"""
+def register_users(user_id, password, role, address=None, phone=None): 
+    """註冊新用戶，支援地址和電話號碼"""
     try:
         hashed_password = generate_password_hash(password)
-        query = "INSERT INTO users (user_id, password, role) VALUES (%s, %s, %s)"
-        execute_query(query, (user_id, hashed_password, role))  # 增加 role 欄位
+        
+        # 根據角色動態構建 SQL 查詢
+        if role == "restaurant" or role == "customer":
+            query = "INSERT INTO users (user_id, password, role, address) VALUES (%s, %s, %s, %s)"
+            values = (user_id, hashed_password, role, address)
+        elif role == "delivery":
+            query = "INSERT INTO users (user_id, password, role, phone) VALUES (%s, %s, %s, %s)"
+            values = (user_id, hashed_password, role, phone)
+        else:
+            raise ValueError("無效的角色選擇")
+
+        # 執行查詢
+        execute_query(query, values)
         return True
     except mysql.connector.IntegrityError as e:
         print(f"註冊失敗: {e}")
         return False
+    except ValueError as ve:
+        print(f"錯誤: {ve}")
+        return False
+
 
 def login_users(user_id, password): 
     """驗證用戶登錄"""
@@ -202,36 +216,56 @@ def checkout_items(item_id):
     return execute_query(query, params, fetchone=True)
 
 def Send_order(restaurant_id, user_id, item_id_and_quantity, total_price):
-    """插入訂單資料到 orders 表"""
+    """插入訂單資料到 orders 表，包括 user_address 和 restaurant_address"""
     try:
         # 格式化 order_items，將 item_id 和 quantity 合併
         formatted_order_items = "; ".join([f"{item_id}&{quantity}" for item_id, quantity in item_id_and_quantity])
 
-        # SQL 插入語句
+        # 获取餐厅地址和用户地址
+        query_addresses = """
+        SELECT 
+            (SELECT address FROM users WHERE user_id = %s AND role = 'restaurant') AS restaurant_address,
+            (SELECT address FROM users WHERE user_id = %s AND role = 'customer') AS user_address
+        """
+
+        # 连接到数据库
+        connection = mysql.connector.connect(host='localhost', user='root', password='', db='restaurant_platform')
+        cursor = connection.cursor()
+
+        # 查询地址
+        cursor.execute(query_addresses, (restaurant_id, user_id))  # 查询餐厅地址和顾客地址
+        user_info = cursor.fetchone()
+        
+        if user_info:
+            restaurant_address = user_info[0] if user_info[0] else "餐厅地址未提供"
+            user_address = user_info[1] if user_info[1] else "顾客地址未提供"
+        else:
+            restaurant_address = "餐厅地址未提供"
+            user_address = "顾客地址未提供"
+
+        # SQL 插入语句，包含 user_address 和 restaurant_address
         query = """
             INSERT INTO orders (
-                restaurant_id, user_id, order_items, customer_total
-            ) VALUES (%s, %s, %s, %s)
+                restaurant_id, user_id, order_items, customer_total, user_address, restaurant_address
+            ) VALUES (%s, %s, %s, %s, %s, %s)
         """
         params = (
             restaurant_id, 
             user_id,
-            formatted_order_items,  # 格式化後的 item_id&quantity
-            total_price
+            formatted_order_items,  # 格式化后的 item_id&quantity
+            total_price,
+            user_address,  # 顾客地址
+            restaurant_address  # 餐厅地址
         )
 
-        # 使用 mysql.connector 來進行資料庫連接和執行
-        connection = mysql.connector.connect(host='localhost', user='root', password='', db='restaurant_platform')
-        cursor = connection.cursor()
-
-        # 執行插入操作
+        # 执行插入操作
         cursor.execute(query, params)
         connection.commit()
 
-        # 獲取插入資料的ID（自動生成的 order_id）
+        # 获取插入数据的ID（自动生成的 order_id）
         order_id = cursor.lastrowid
 
-        # 關閉連接
+        # 关闭连接
         cursor.close()
         connection.close()
 
@@ -243,9 +277,12 @@ def Send_order(restaurant_id, user_id, item_id_and_quantity, total_price):
         print(f"插入訂單失敗: {e}")
         return None
 
+
+
+
 def get_user_orders(user_id):
-    """根據用戶 ID 獲取該用戶的所有訂單"""
-    query = """
+    """根據用戶 ID 獲取該用戶的所有訂單和用戶的地址、電話"""
+    query_orders = """
     SELECT 
         id, 
         restaurant_id, 
@@ -253,12 +290,18 @@ def get_user_orders(user_id):
         customer_total, 
         status, 
         reviewed, 
-        created_at 
+        rider_delivery_status,
+        created_at, 
+        user_address,  
+        restaurant_address,
+        phone
     FROM orders 
     WHERE user_id = %s
     """
-    orders = execute_query(query, (user_id,), fetchall=True)
+    orders = execute_query(query_orders, (user_id,), fetchall=True)
+    
     return orders
+
 
 def submit_order_review(order_id, rating, comment):
     """保存訂單評價並更新訂單狀態"""

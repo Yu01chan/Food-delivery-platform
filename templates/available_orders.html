@@ -73,8 +73,11 @@
         {% for order in orders %}
             <div class="order-item">
                 <h3>訂單號：{{ order.id }}</h3>
-                <p>餐廳名稱：{{ order.restaurant_id }}</p>  <!-- 修改为餐厅名称 -->
-                <p>訂單總金額：¥{{ '%.2f' % order.customer_total }}</p> <!-- 保留两位小数的金额格式 -->
+                <p>餐廳名稱：{{ order.restaurant_id }}</p> <!-- 替換為餐廳名稱 -->
+                <p>餐廳地址：{{ order.restaurant_address if order.restaurant_address else "地址未提供" }}</p> <!-- 顯示餐廳地址 -->
+                <p>訂單總金額：¥{{ order.customer_total | round(2) }}</p> <!-- 使用 round() 來顯示金額 -->
+                
+                
                 <a href="{{ url_for('pick_order', order_id=order.id) }}" class="button">接單</a>
             </div>
         {% endfor %}
@@ -82,7 +85,7 @@
         <p>目前沒有待接單訂單。</p>
     {% endif %}
 
-    <!-- 返回主页按钮 -->
+    <!-- 返回首頁按鈕 -->
     <a href="{{ url_for('rider_dashboard') }}" class="back-button">返回首頁</a>
 </body>
 </html>
